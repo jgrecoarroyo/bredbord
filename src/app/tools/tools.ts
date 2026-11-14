@@ -298,6 +298,8 @@ export class Tools {
   polarityOnHover = true;
   /** Pins pointed at on the card's pin list, whose legs glow on the desk. */
   private cardPins: { id: Id; pins: readonly number[] } | null = null;
+  /** The probe pointed at in the probes panel, whose hole glows on the desk. */
+  private pointedProbe: Id | null = null;
   /** What's under way that a click finishes or Esc cancels, in a few words for the hint bar; '' when nothing is. */
   task = '';
   toast: (message: string) => void = () => {};
@@ -2752,7 +2754,7 @@ export class Tools {
           ? (this.legHandles()?.at ?? [])
           : [];
     this.highlights.setHandles(handles, sel?.kind === 'part');
-    this.highlights.setPins(this.cardPinPoints());
+    this.highlights.setPins([...this.cardPinPoints(), ...this.probePoints()]);
     // A board isn't boxed just for being under the pointer: it nearly always is.
     const item = this.hoverItem;
     const hov =
@@ -2776,6 +2778,22 @@ export class Tools {
     this.cardPins = next;
     this.updateHighlights();
     this.view.invalidate();
+  }
+
+  /** Lights the hole probe `id` is clipped onto, as its lane is pointed at in the probes panel; null turns it off. */
+  pointProbe(id: Id | null): void {
+    if (id === this.pointedProbe) return;
+    this.pointedProbe = id;
+    this.updateHighlights();
+    this.view.invalidate();
+  }
+
+  /** Where the probe pointed at in the probes panel sits. */
+  private probePoints(): THREE.Vector3[] {
+    const id = this.pointedProbe;
+    const probe = id && this.store.doc.probes?.find((p) => p.id === id);
+    const world = probe && !this.drag ? this.sync.holeWorld(probe.at) : null;
+    return world ? [world] : [];
   }
 
   /** Where the legs pointed at on the card go into the board. */

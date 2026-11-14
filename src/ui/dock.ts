@@ -76,7 +76,7 @@ export class Dock {
   private readonly lsvg = el('div', 'lsvg');
   private readonly canvas = el('canvas');
   private readonly g = this.canvas.getContext('2d')!;
-  private readonly labels: { value: HTMLElement }[] = [];
+  private readonly labels: { value: HTMLElement; row: HTMLElement }[] = [];
   private rowsKey = '';
   private span = 1;
   private frozenAt: number | null = null;
@@ -305,6 +305,8 @@ export class Dock {
     if (key === this.rowsKey) return;
     this.rowsKey = key;
     this.labels.length = 0;
+    // The rows go, and with them whatever hole was lit by pointing at one.
+    this.pointLane(null);
     this.lcol.replaceChildren(el('div', 'lsp'));
     for (const p of probes) {
       const row = el('div', 'lname');
@@ -322,10 +324,20 @@ export class Dock {
       remove.append(icon('close', true));
       remove.addEventListener('click', () => this.tool.removeProbe(p.id));
       row.append(text, remove);
+      // Pointing at a probe's label lights its hole on the desk.
+      row.addEventListener('pointerenter', () => this.pointLane(p.id));
+      row.addEventListener('pointerleave', () => this.pointLane(null));
       this.lcol.append(row);
-      this.labels.push({ value });
+      this.labels.push({ value, row });
     }
     paintIcons(this.lcol);
+  }
+
+  /** Lights probe `id`'s hole on the desk and tints its label; null turns both off. */
+  private pointLane(id: Id | null): void {
+    const probes = this.sim.probes;
+    this.labels.forEach((l, i) => l.row.classList.toggle('lit', probes[i]?.id === id));
+    this.tool.pointProbe(id);
   }
 
   /** A probe's hole, as its lane is labelled. */
@@ -381,6 +393,8 @@ export class Dock {
     });
     c.addEventListener('pointermove', (e) => {
       this.hoverX = e.offsetX;
+      // The lane under the pointer lights its probe's hole on the desk.
+      this.pointLane(this.sim.probes[Math.floor((e.offsetY - RULER) / LANE)]?.id ?? null);
       const p = this.press;
       if (p && (p.moved || Math.abs(e.clientX - p.x) > DRAG_START)) {
         p.moved = true;
@@ -404,6 +418,7 @@ export class Dock {
       this.draw();
     });
     c.addEventListener('pointerleave', () => {
+      this.pointLane(null);
       if (this.press) return;
       this.hoverX = null;
       this.draw();

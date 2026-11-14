@@ -1,6 +1,6 @@
 // What the tools draw over the scene: soft boxes round what's selected and what's under the pointer,
 // handles on a selected wire's bends and a selected part's legs, the ghost of what's being placed, and a
-// glow on the legs whose pins are pointed at on the card.
+// glow on the legs whose pins are pointed at on the card (or the hole of a probe pointed at in its panel).
 // Each is rebuilt only when what it shows changes.
 
 import * as THREE from 'three';
@@ -116,7 +116,8 @@ export class Highlights {
   }
 
   /**
-   * Amber glow round the legs whose pins are pointed at on the card's pin list. Each leg gets a
+   * Amber glow round the legs whose pins are pointed at on the card's pin list, or round the hole of a probe
+   * pointed at in the probes panel. Each leg gets a
    * see-through column from the hole up past its shoulder, and a fainter copy drawn over everything,
    * so a leg on the far side of a chip still shows through the body.
    */
