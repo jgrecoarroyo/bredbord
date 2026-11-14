@@ -13,7 +13,7 @@ Ben Eater's breadboard computer [videos](https://www.youtube.com/playlist?list=P
 - Breadboards, power rails, a power module (5 V / 3.3 V)
 - Resistors, capacitors, LEDs, diodes, transistors, potentiometers
 - Push buttons, slide switches, DIP switches, 7-segment displays, LED bar graph, 16×2 LCD
-- 74LS00, 02, 04, 08, 10, 11, 14, 27, 32, 47, 74, 76, 86, 107, 125, 138, 139, 157, 161, 173, 189, 193, 245, 273, 283, 74HC595, NE555
+- 74LS00, 02, 04, 08, 10, 11, 14, 27, 32, 47, 74, 76, 86, 107, 125, 138, 139, 157, 161, 173, 189, 193, 245, 273, 283, 74HC153, 165, 595, NE555
 - 28C16 and AT28C256 EEPROMs, 62256 RAM, W65C02S CPU
 - Arduino Nano (runs ATmega328P `.hex` files)
 
