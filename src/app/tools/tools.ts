@@ -2083,6 +2083,8 @@ export class Tools {
       return;
     }
     if (!this.pending) {
+      // A new wire is under way: the wire picked before it isn't what the user is working on now.
+      if (this.selection?.kind === 'wire') this.selection = null;
       this.pending = h;
       this.bends = [];
       this.refresh();
