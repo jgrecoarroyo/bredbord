@@ -31,8 +31,8 @@ export const LEG_DIRECTIONS: readonly [number, number][] = [
   [-1, 0],
   [0, -1],
 ];
-/** Holes between a resistor's or diode's legs when it's dropped in. */
-const AXIAL_SPAN = 4;
+/** Holes from a resistor's or diode's first leg to its second when it's dropped in: four holes end to end. */
+const AXIAL_SPAN = 3;
 /** A power module's pins at either end of a BB830. */
 const POWER_PINS = { left: ['T+1', 'T-1', 'B+1', 'B-1'], right: ['T+50', 'T-50', 'B+50', 'B-50'] };
 
@@ -146,7 +146,7 @@ export function placementFor(fit: Fit, def: PartDef, hit: HoleHit, o: Orientatio
       }
       case 'resistor':
       case 'diode': {
-        // Dropped in with its legs four holes apart; drag a leg afterwards to stretch it.
+        // Dropped in across four holes; drag a leg afterwards to stretch it.
         const [dc, dr] = LEG_DIRECTIONS[o.direction];
         const other = spec.holeAt(h.hole.col + dc * AXIAL_SPAN, h.hole.row + dr * AXIAL_SPAN);
         const world = [
