@@ -640,9 +640,11 @@ describe('memory chips', () => {
 
   it.each(['AT28C256', '62256'])('%s: writes on the rising edge of WE and reads the byte back', (id) => {
     const m = make(id);
+    // A RAM wakes up holding random bytes, and one in 256 times that's already 0xA5: start from a known byte.
+    m.state.mem![0x1234] = 0x00;
     // CE low, OE high, WE low with the data on the pins; the byte lands when WE rises.
     m.apply({ 20: 0, 22: 1, 27: 0, ...m.address(0x1234), ...m.data(0xa5) });
-    expect(m.state.mem![0x1234]).not.toBe(0xa5);
+    expect(m.state.mem![0x1234]).toBe(0x00);
     m.apply({ 27: 1 });
     expect(m.state.mem![0x1234]).toBe(0xa5);
     m.apply({ 22: 0 });
@@ -653,11 +655,13 @@ describe('memory chips', () => {
 
   it('takes the byte from before the address and data moved on, when CE and the address change together', () => {
     const m = make('62256');
+    // A known byte at the new address, rather than its random power-up one (which could be 0x77).
+    m.state.mem![0x0020] = 0x55;
     m.apply({ 20: 0, 22: 1, 27: 0, ...m.address(0x0010), ...m.data(0x77) });
     // CE rises as the address and data both change.
     m.apply({ 20: 1, ...m.address(0x0020), ...m.data(0x00) });
     expect(m.state.mem![0x0010]).toBe(0x77);
-    expect(m.state.mem![0x0020]).not.toBe(0x77);
+    expect(m.state.mem![0x0020]).toBe(0x55);
   });
 
   it('finishes one write when the address moves with WE still low, then starts the next', () => {
