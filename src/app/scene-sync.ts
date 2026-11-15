@@ -519,7 +519,10 @@ export class SceneSync {
     );
   }
 
-  /** Everything on the desk: boards, plus parts that hang off them (like a power module). */
+  /**
+   * Everything on the desk: boards, plus parts that hang off them (like a power module), as tall as
+   * they stand, so that framing keeps a power jack or a tall capacitor in view.
+   */
   boardsBox(): THREE.Box3 {
     const box = new THREE.Box3();
     for (const b of this.store.doc.boards) {
@@ -532,7 +535,7 @@ export class SceneSync {
     this.scopes.expand(box);
     for (const e of this.parts.values()) {
       box.expandByPoint(new THREE.Vector3(e.bounds.min.x, 0, e.bounds.min.z));
-      box.expandByPoint(new THREE.Vector3(e.bounds.max.x, H, e.bounds.max.z));
+      box.expandByPoint(new THREE.Vector3(e.bounds.max.x, Math.max(H, e.bounds.max.y), e.bounds.max.z));
     }
     return box;
   }
