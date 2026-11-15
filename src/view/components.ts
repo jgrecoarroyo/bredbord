@@ -615,10 +615,10 @@ function capacitorPieces(def: CapacitorDef, pins: readonly V[], farads: number):
 // ---- potentiometer ----
 // A breadboard trimmer: three legs in a row, a square body and a knob on top that turns through 270°.
 
-const POT_BODY = 9.6;
-/** Its body along the row of legs: narrower than it is deep. */
-const POT_WIDTH = 7.4;
-const POT_KNOB_TOP = 8.6;
+const POT_BODY = 7.4;
+/** The knob's radius: well inside the body, like a trimmer's. */
+const POT_KNOB_R = 1.8;
+const POT_KNOB_TOP = 6.2;
 const potBody = new THREE.MeshStandardMaterial({ color: 0x2457c5, roughness: 0.5 });
 const knobMaterial = new THREE.MeshStandardMaterial({ color: 0xf1efea, roughness: 0.5 });
 const pointerMaterial = new THREE.MeshStandardMaterial({ color: 0x1c1b19, roughness: 0.5 });
@@ -654,7 +654,7 @@ function potPieces(pins: readonly V[], position: number): Piece[] {
     {
       key: 'pot-body',
       geometry: cached('pot-body', () =>
-        new RoundedBoxGeometry(POT_WIDTH, 3.6, POT_BODY, 2, 0.6).translate(0, 0.4 + 1.8, 0),
+        new RoundedBoxGeometry(POT_BODY, 3.6, POT_BODY, 2, 0.6).translate(0, 0.4 + 1.8, 0),
       ),
       material: potBody,
       matrix,
@@ -662,7 +662,11 @@ function potPieces(pins: readonly V[], position: number): Piece[] {
     {
       key: 'pot-knob',
       geometry: cached('pot-knob', () =>
-        new THREE.CylinderGeometry(3.2, 3.35, POT_KNOB_TOP - 4, 24).translate(0, 4 + (POT_KNOB_TOP - 4) / 2, 0),
+        new THREE.CylinderGeometry(POT_KNOB_R, POT_KNOB_R + 0.1, POT_KNOB_TOP - 4, 24).translate(
+          0,
+          4 + (POT_KNOB_TOP - 4) / 2,
+          0,
+        ),
       ),
       material: knobMaterial,
       matrix: knob,
@@ -670,7 +674,7 @@ function potPieces(pins: readonly V[], position: number): Piece[] {
     {
       key: 'pot-pointer',
       geometry: cached('pot-pointer', () =>
-        new THREE.BoxGeometry(0.7, 0.2, 2.5).translate(0, POT_KNOB_TOP + 0.1, -1.5),
+        new THREE.BoxGeometry(0.45, 0.2, 1.4).translate(0, POT_KNOB_TOP + 0.1, -0.85),
       ),
       material: pointerMaterial,
       matrix: knob,
