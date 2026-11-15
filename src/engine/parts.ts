@@ -126,7 +126,7 @@ export interface SlideDef extends PartBase {
 
 /**
  * A latching DPDT push switch (8 × 8 mm, push on, push off) across the channel, pinned like a 6-pin DIP.
- * Pins 3 and 6 are the commons: out (state 0) they join 1 and 4, pushed in (state 1) 2 and 5.
+ * The middle pins, 2 and 5, are the commons: out (state 0) they join 1 and 6, pushed in (state 1) 3 and 4.
  */
 export interface PushSwitchDef extends PartBase {
   readonly kind: 'pushswitch';

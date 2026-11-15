@@ -644,7 +644,7 @@ export class Inspector {
         );
         card.fold('Pins', (into) =>
           into.append(
-            pinList(['1', '2', 'Common', '4', '5', 'Common'], part, this.deps, card, false, pushSwitchLayout(position)),
+            pinList(['1', 'Common', '3', '4', 'Common', '6'], part, this.deps, card, false, pushSwitchLayout(position)),
           ),
         );
         return '';

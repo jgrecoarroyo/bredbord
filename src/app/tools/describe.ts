@@ -67,7 +67,7 @@ export function describePin(part: PartDoc, pin: number): string {
     case 'slide':
       return `Slide switch ${pin === 1 ? 'common' : `pin ${pin + 1}`}`;
     case 'pushswitch':
-      return `Push switch pin ${pin + 1}${pin === 2 || pin === 5 ? ' (common)' : ''}`;
+      return `Push switch pin ${pin + 1}${pin === 1 || pin === 4 ? ' (common)' : ''}`;
     case 'transistor':
       return `${def.title} ${['emitter', 'base', 'collector'][pin]}`;
     case 'display': {
@@ -227,7 +227,7 @@ function describePart(sim: Simulation, p: PartDoc): string[] {
     case 'slide':
       return ['Slide switch', `Common to pin ${(p.state ?? 0) & 1 ? 3 : 1}`];
     case 'pushswitch':
-      return ['Push switch', (p.state ?? 0) & 1 ? 'In: 3 to 2, 6 to 5' : 'Out: 3 to 1, 6 to 4'];
+      return ['Push switch', (p.state ?? 0) & 1 ? 'In: 2 to 3, 5 to 4' : 'Out: 2 to 1, 5 to 6'];
     case 'transistor': {
       const reading = live ? sim.result.transistors.get(p.id) : undefined;
       return [
