@@ -127,6 +127,66 @@ export interface BlockLayout {
   dots?: readonly (readonly [number, number])[];
   /** Small letters inside the bodies, [x, y, text]. */
   labels?: readonly (readonly [number, number, string])[];
+  /** Width of the drawing, px, for a package narrower than a chip's (one row of pins). */
+  width?: number;
+}
+
+/**
+ * A push button: legs 1 and 2 joined inside, 3 and 4 joined inside, and the switch between the
+ * pairs, its plunger on top. Pins run down the left (1, 2) and up the right (3, 4), as in the list.
+ */
+export const BUTTON_LAYOUT: BlockLayout = {
+  leads: 'M0 12.5H22V34.5H0M22 23.5H34M93 12.5H71V34.5H93M71 23.5H59',
+  bodies: [],
+  marks: 'M35.8 22.6L56 13M45.5 17.6V12.5M41 12.5H50',
+  bubbles: [
+    [36, 23.5],
+    [57, 23.5],
+  ],
+  dots: [
+    [22, 23.5],
+    [71, 23.5],
+  ],
+};
+
+/** A potentiometer: its track between legs 1 and 3, and the wiper (leg 2) pressing on it. */
+export const POT_LAYOUT: BlockLayout = {
+  leads: 'M37 12.5H13V20M37 56.5H13V49M37 34.5H21',
+  bodies: ['M9 20H17V49H9Z'],
+  marks: 'M21 34.5H17.6M21 31L17.6 34.5L21 38',
+  width: 37,
+};
+
+/**
+ * A slide switch: legs 1 and 3 each end at a contact, and leg 2's blade rests on one of them,
+ * leg 1's with the switch to the left (`position` 0), leg 3's to the right.
+ */
+export function slideLayout(position: 0 | 1): BlockLayout {
+  return {
+    leads: 'M37 12.5H12M37 56.5H12M37 34.5H24',
+    bodies: [],
+    marks: position ? 'M21 36L11 53' : 'M21 33L11 16',
+    bubbles: [
+      [10, 12.5],
+      [10, 56.5],
+      [22, 34.5],
+    ],
+    width: 37,
+  };
+}
+
+/** An LED bar graph: each bar an LED from its + leg on the left straight across to its − leg on the right. */
+export function barGraphLayout(segments: number): BlockLayout {
+  let leads = '';
+  let marks = '';
+  const bodies: string[] = [];
+  for (let s = 0; s < segments; s++) {
+    const y = 12.5 + 22 * s;
+    leads += `M0 ${y}H39M54 ${y}H93`;
+    bodies.push(`M39 ${y - 6}V${y + 6}L53 ${y}Z`);
+    marks += `M54 ${y - 6}V${y + 6}`;
+  }
+  return { leads, bodies, marks };
 }
 
 export const BLOCK_LAYOUTS: Readonly<Record<string, BlockLayout>> = {
@@ -188,10 +248,10 @@ export const BLOCK_LAYOUTS: Readonly<Record<string, BlockLayout>> = {
   },
 };
 
-/** An SVG of a chip drawn as blocks, sized like `gatesDrawing`. */
-export function blockDrawing(layout: BlockLayout, pins: number): SVGSVGElement {
-  const W = GATES_WIDTH;
-  const height = (pins / 2) * ROW + 3;
+/** An SVG of a part drawn as blocks, sized like `gatesDrawing`, with `rows` rows of pins down its sides. */
+export function blockDrawing(layout: BlockLayout, rows: number): SVGSVGElement {
+  const W = layout.width ?? GATES_WIDTH;
+  const height = rows * ROW + 3;
   const svg = document.createElementNS(SVG, 'svg');
   svg.setAttribute('class', 'gates');
   svg.setAttribute('viewBox', `0 0 ${W} ${height}`);

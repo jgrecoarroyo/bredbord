@@ -30,7 +30,16 @@ import { encodeBytes } from '../engine/sim/simulator';
 import type { Store } from '../app/store';
 import { describeSwitching } from '../app/tools/describe';
 import { Card, checkbox, choice, numberField, select, valueSelect, type InspectorDeps } from './card';
-import { BLOCK_LAYOUTS, blockDrawing, gatesDrawing, type BlockLayout } from './gates';
+import {
+  BLOCK_LAYOUTS,
+  blockDrawing,
+  barGraphLayout,
+  BUTTON_LAYOUT,
+  gatesDrawing,
+  POT_LAYOUT,
+  slideLayout,
+  type BlockLayout,
+} from './gates';
 import { $, capitalise, download, el, hexDigits, safeFileName, setText } from './dom';
 import { syncSelect } from './menus';
 import { icon, paintIcons } from './px';
@@ -580,13 +589,23 @@ export class Inspector {
         if (part) {
           this.knob(part.id, card);
         }
+        card.fold('Pins', (into) =>
+          into.append(pinList(['End', 'Wiper', 'End'], part, this.deps, card, true, POT_LAYOUT)),
+        );
         return '';
       case 'button': {
-        if (!part || !live) return '';
-        const held = checkbox(sim.isHeld(part.id), 'Held down', (on) => (on ? sim.hold(part.id) : sim.unhold(part.id)));
-        // Kept in step with the button, which a click on the board also lets go of.
-        card.live(() => held.setAttribute('aria-checked', String(sim.isHeld(part.id))));
-        card.body.append(held);
+        if (part && live) {
+          const held = checkbox(sim.isHeld(part.id), 'Held down', (on) =>
+            on ? sim.hold(part.id) : sim.unhold(part.id),
+          );
+          // Kept in step with the button, which a click on the board also lets go of.
+          card.live(() => held.setAttribute('aria-checked', String(sim.isHeld(part.id))));
+          card.body.append(held);
+        }
+        // Legs 1 and 2 are joined inside, and 3 and 4; pressing joins the pairs.
+        card.fold('Pins', (into) =>
+          into.append(pinList(['A', 'A', 'B', 'B'], part, this.deps, card, false, BUTTON_LAYOUT)),
+        );
         return '';
       }
       case 'slide': {
@@ -602,6 +621,9 @@ export class Inspector {
             () => part && sim.toggleSwitch(part.id, 0),
             !part,
           ),
+        );
+        card.fold('Pins', (into) =>
+          into.append(pinList(['A', 'Common', 'B'], part, this.deps, card, true, slideLayout(position))),
         );
         return '';
       }
@@ -661,6 +683,11 @@ export class Inspector {
         return '';
       case 'bargraph':
         card.note('Pins 1–10 are the + legs, 11–20 the − legs');
+        card.fold('Pins', (into) => {
+          const n = def.segments;
+          const names = Array.from({ length: 2 * n }, (_, i) => (i < n ? `${i + 1}+` : `${2 * n - i}−`));
+          into.append(pinList(names, part, this.deps, card, false, barGraphLayout(n)));
+        });
         return '';
       case 'lcd':
         card.note('16 characters on 2 lines, with an HD44780 controller');
@@ -1049,7 +1076,7 @@ function pinList(
   const body = el('div', 'pkg');
   body.style.gridRow = `1 / span ${inLine ? n : half}`;
   // Logic chips show their gates (or blocks, for a mux or a register) inside the outline, wired to their pins.
-  if (gates) body.append('gates' in gates ? gatesDrawing(gates, n) : blockDrawing(gates, n));
+  if (gates) body.append('gates' in gates ? gatesDrawing(gates, n) : blockDrawing(gates, inLine ? n : half));
   if (!inLine) body.append(el('span', 'notch'));
   list.classList.toggle('on-desk', !!part);
   list.append(body);
