@@ -691,6 +691,20 @@ function potPieces(pins: readonly V[], position: number): Piece[] {
 
 const SLIDE_TOP = 3.8;
 
+/** Whether `ray` meets a slide switch's lever, anywhere along its travel, with legs at `pins`. */
+export function slideLeverAt(pins: readonly V[], ray: THREE.Ray): boolean {
+  const top = new THREE.Plane(new THREE.Vector3(0, 1, 0), -(H + SLIDE_TOP + 2.6));
+  const at = ray.intersectPlane(top, new THREE.Vector3());
+  if (!at) return false;
+  const c = pins[1];
+  const along = pins[2].clone().sub(pins[0]).setY(0).normalize();
+  const dx = at.x - c.x;
+  const dz = at.z - c.z;
+  const a = dx * along.x + dz * along.z;
+  const b = -dx * along.z + dz * along.x;
+  return Math.abs(a) < 2.7 + 0.5 && Math.abs(b) < 1.4 + 0.5;
+}
+
 function slidePieces(pins: readonly V[], state: number): Piece[] {
   const matrix = placement(pins[0], pins[2], pins[1]);
   const lever = matrix.clone().multiply(new THREE.Matrix4().makeTranslation(state & 1 ? 1.3 : -1.3, 0, 0));
@@ -1243,6 +1257,15 @@ export function powerLedGeometry(): THREE.BufferGeometry {
 // Four legs at the corners of a 2 × 3 hole rectangle (two columns, across the centre channel).
 
 const BUTTON_TOP = 3.9;
+const BUTTON_CAP_R = 1.75;
+
+/** Whether `ray` meets the cap of a push button with its legs at `pins`, give or take a little. */
+export function buttonCapAt(pins: readonly V[], ray: THREE.Ray): boolean {
+  const c = centroid(pins);
+  const top = new THREE.Plane(new THREE.Vector3(0, 1, 0), -(H + BUTTON_TOP + 1.4));
+  const at = ray.intersectPlane(top, new THREE.Vector3());
+  return !!at && Math.hypot(at.x - c.x, at.z - c.z) < BUTTON_CAP_R + 0.6;
+}
 
 /** The cap of a button that's being held down: hard to miss, so it isn't forgotten. */
 const heldCapMaterial = new THREE.MeshStandardMaterial({
@@ -1273,7 +1296,7 @@ function buttonPieces(pins: readonly V[], pressed: boolean, held: boolean): Piec
   const plate = cached('btn-plate', () => new THREE.BoxGeometry(6.2, 0.3, 6.2).translate(0, BUTTON_TOP - 0.15, 0));
   const body = cached('btn-body', () => new THREE.BoxGeometry(6, 3.4, 6).translate(0, 0.2 + 1.7, 0));
   const cap = cached('btn-cap', () =>
-    new THREE.CylinderGeometry(1.75, 1.75, 1.4, 24).translate(0, BUTTON_TOP + 0.7, 0),
+    new THREE.CylinderGeometry(BUTTON_CAP_R, BUTTON_CAP_R, 1.4, 24).translate(0, BUTTON_TOP + 0.7, 0),
   );
   // Pressing only moves the cap, so the scene can update it in place.
   const capMatrix = pressed ? matrix.clone().multiply(new THREE.Matrix4().makeTranslation(0, -0.6, 0)) : matrix;

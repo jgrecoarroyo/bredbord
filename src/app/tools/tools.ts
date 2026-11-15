@@ -53,7 +53,7 @@ import {
 } from '../../engine/scope';
 import { SUPPLY_SIZE, SUPPLY_TERMINALS } from '../../engine/supply';
 import type { ScreenTag } from '../../ui/tags';
-import { buildPart, powerJumperAt } from '../../view/components';
+import { buildPart, buttonCapAt, powerJumperAt, slideLeverAt } from '../../view/components';
 import { owned, tube } from '../../view/geometry';
 import { Markers, MAX_PROBES, ProbePins, type MarkerTone } from '../../view/markers';
 import { ghostify } from '../../view/materials';
@@ -336,6 +336,19 @@ export class Tools {
   private hover: HoleHit | null = null;
   private hoverItem: ItemRef | null = null;
   private gesture: Gesture | null = null;
+  /** Whether the pointer is on the cap of push button `id`, rather than its body. */
+  private onButtonCap(id: Id): boolean {
+    const part = this.fit.part(id);
+    const pins = part?.pins.map((r) => this.sync.holeWorld(r));
+    return !!pins && pins.every((p) => !!p) && buttonCapAt(pins as THREE.Vector3[], this.view.rayFrom(this.ndc));
+  }
+
+  /** Whether the pointer is on slide switch `id`'s lever, rather than its body. */
+  private onSlideLever(id: Id): boolean {
+    const pins = this.fit.part(id)?.pins.map((r) => this.sync.holeWorld(r));
+    return !!pins && pins.every((p) => !!p) && slideLeverAt(pins as THREE.Vector3[], this.view.rayFrom(this.ndc));
+  }
+
   /** Where the button went down, and which button. */
   private down: (Pressed & { button: number }) | null = null;
   /** Scroll on a meter dial piled up toward the next position. */
@@ -1477,9 +1490,9 @@ export class Tools {
       return this.pressInstrument(item, e, capture);
     }
     const def = item.kind === 'part' ? this.fit.partDef(item.id) : undefined;
-    if (this.sim.result.live && def?.kind === 'button') {
-      // While the circuit runs, push buttons are pressed rather than picked up: down for as long as
-      // the mouse is. A held one (its Hold popup, or Shift-click) is let go with a click.
+    if (this.sim.result.live && def?.kind === 'button' && this.onButtonCap(item.id)) {
+      // While the circuit runs, a push button's cap is pressed: down for as long as the mouse is.
+      // A held one (its Hold popup, or Shift-click) is let go with a click. Its body is picked like any part.
       if (this.sim.isHeld(item.id)) this.sim.unhold(item.id);
       else if (e.shiftKey) this.sim.hold(item.id);
       else {
@@ -2090,7 +2103,7 @@ export class Tools {
       this.sim.setPowerJumper(item.id, jumper.side, to);
       return;
     }
-    if (item && live && def?.kind === 'slide') {
+    if (item && live && def?.kind === 'slide' && this.onSlideLever(item.id)) {
       this.sim.toggleSwitch(item.id, 0);
       return;
     }
@@ -2696,7 +2709,9 @@ export class Tools {
     if (this.jumperAt(item)) return 'pointer';
     const kind = item.kind === 'part' ? this.fit.partDef(item.id)?.kind : undefined;
     const live = this.sim.result.live;
-    if (live && (kind === 'button' || kind === 'dipswitch' || kind === 'slide' || kind === 'pot')) return 'pointer';
+    if (live && kind === 'button' && this.onButtonCap(item.id)) return 'pointer';
+    if (live && kind === 'slide' && this.onSlideLever(item.id)) return 'pointer';
+    if (live && (kind === 'dipswitch' || kind === 'pot')) return 'pointer';
     // A board only moves once it's selected; until then a drag on it moves the view.
     const doc = this.store.doc;
     if (item.kind === 'board' && this.selection?.id !== item.id && this.selection?.id !== unitOf(doc, item.id))
