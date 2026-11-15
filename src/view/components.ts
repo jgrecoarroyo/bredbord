@@ -467,7 +467,37 @@ const DISC_R = 2.5;
 const DISC_T = 1.05;
 const DISC_Y = 1.2 + DISC_R;
 /** How far a ceramic disc is raised with its legs `span` apart: enough for them to bend under the drips. */
-const discLift = (span: number): number => (Math.abs(span - PITCH) < 0.01 ? 0 : 2.8);
+const discLift = (span: number): number => (Math.abs(span - PITCH) < 0.01 ? 0 : 1);
+/** Where the drips of resin on a disc's legs are, and how far they hang (half their height), by lift. */
+const DRIP_Y = DISC_Y - Math.sqrt(DISC_R ** 2 - (PITCH / 2) ** 2) - 0.1;
+const dripHalf = (lift: number): number => 0.62 * (lift ? 0.9 : 1.7);
+
+/**
+ * A disc's legs bent out from under it: up from their holes, out to the disc in one slope, and in
+ * at the bottom of its drips, which hide the bend.
+ */
+function discLegs(span: number, lift: number): THREE.BufferGeometry {
+  if (!lift) return bentLegs('cap-disc-legs', span, DISC_Y - 1.2, 0.25);
+  return cached(`cap-disc-legs-bent-${span.toFixed(2)}`, () => {
+    const join = DRIP_Y + lift - dripHalf(lift) + 0.3;
+    const leg = (sign: number): THREE.BufferGeometry => {
+      const foot = (sign * span) / 2;
+      const body = (sign * PITCH) / 2;
+      const points = roundCorners(
+        [
+          new THREE.Vector3(foot, -HOLE_DEPTH, 0),
+          new THREE.Vector3(foot, 0.5, 0),
+          new THREE.Vector3(body, join, 0),
+          new THREE.Vector3(body, DISC_Y - 1.2 + lift, 0),
+        ],
+        0.6,
+        4,
+      );
+      return tube(points, 0.25, 6, false);
+    };
+    return mergeGeometries([leg(-1), leg(1)])!;
+  });
+}
 const discMaterial = new THREE.MeshStandardMaterial({ color: 0xc4712c, roughness: 0.6 });
 const codeMaterials = new Map<string, THREE.Material>();
 
@@ -548,13 +578,13 @@ function capacitorPieces(def: CapacitorDef, pins: readonly V[], farads: number):
     return [
       {
         key: `cap-disc-legs-${span.toFixed(2)}`,
-        geometry: bentLegs('cap-disc-legs', span, DISC_Y - 1.2 + lift, 0.25),
+        geometry: discLegs(span, lift),
         material: tinMaterial,
         matrix,
       },
       {
-        key: 'cap-disc',
-        geometry: cached('cap-disc', () => {
+        key: lift ? 'cap-disc-bent' : 'cap-disc',
+        geometry: cached(lift ? 'cap-disc-bent' : 'cap-disc', () => {
           // A disc with rounded edges, standing up with its faces to the front and back.
           const pts = [new THREE.Vector2(0, -DISC_T)];
           for (let i = 0; i <= 10; i++) {
@@ -566,7 +596,7 @@ function capacitorPieces(def: CapacitorDef, pins: readonly V[], farads: number):
           const drip = (x: number): THREE.BufferGeometry => {
             const g = new THREE.SphereGeometry(0.62, 12, 8);
             g.deleteAttribute('uv');
-            return g.scale(1, 1.7, 0.9).translate(x, DISC_Y - Math.sqrt(DISC_R ** 2 - (PITCH / 2) ** 2) - 0.1, 0);
+            return g.scale(1, dripHalf(lift) / 0.62, 0.9).translate(x, DRIP_Y, 0);
           };
           disc.deleteAttribute('uv');
           return mergeGeometries([disc, drip(-PITCH / 2), drip(PITCH / 2)])!;
