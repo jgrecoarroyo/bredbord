@@ -122,14 +122,15 @@ describe('A 6502 computer on a breadboard', () => {
   });
 
   it('keeps the CPU stuck in reset until RESB goes high', () => {
+    // INC $10; JMP $8000, with the RAM starting cleared instead of holding random bytes, so the count starts at 0.
     const b = build(eeprom([0xe6, 0x10, 0x4c, 0x00, 0x80]));
+    const ram = b.doc.parts.find((p) => p.id === 'ram')!;
+    ram.initialMemory = encodeBytes(new Uint8Array(0x8000));
     clock(b, 40, 40);
-    expect(b.sim.memoryOf(b.doc.parts.find((p) => p.id === 'ram')!)![0x10]).not.toBe(0xff);
-    // Never released, so it never ran the program: the RAM holds its random power-up contents, not a count.
-    const held = b.sim.memoryOf(b.doc.parts.find((p) => p.id === 'ram')!)![0x10];
+    // Never released, so it never ran the program: nothing counted.
+    expect(b.sim.memoryOf(ram)![0x10]).toBe(0);
     clock(b, 40, 0);
-    const ran = b.sim.memoryOf(b.doc.parts.find((p) => p.id === 'ram')!)![0x10];
-    expect(ran).not.toBe(held);
+    expect(b.sim.memoryOf(ram)![0x10]).toBeGreaterThan(0);
   });
 
   it('logs each bus cycle with the address and data that were really on the bus', () => {
