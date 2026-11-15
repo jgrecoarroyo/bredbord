@@ -306,13 +306,15 @@ const sameRoute = (r: Route | null, s: Route | null): boolean =>
     r.heights.every((h, i) => Math.abs(h - s.heights[i]) < 1e-6));
 
 /** What a wire carries while the circuit runs: high, low, or neither (floating or in between). */
-export type WireLevel = 'H' | 'L' | 'Z';
+/** High, low, floating, or switching faster than the screen shows. */
+export type WireLevel = 'H' | 'L' | 'Z' | 'S';
 
 // The usual logic-simulator colours: bright green high, dark green low, grey floating.
 const LEVEL_COLORS: Record<WireLevel, THREE.Color> = {
   H: new THREE.Color(0x3fd45a),
   L: new THREE.Color(0x1d5a2b),
   Z: new THREE.Color(0x8d95a3),
+  S: new THREE.Color(0x3fd45a).lerp(new THREE.Color(0x1d5a2b), 0.5),
 };
 
 /** A mesh of wires' insulation; ribbons turn to face the light when they cast their shadows. */

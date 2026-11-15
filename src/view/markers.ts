@@ -8,7 +8,10 @@ const LIFT = 0.05;
 
 export type MarkerTone = 'ok' | 'bad' | 'info';
 /** Logic level shown on the connected holes while the power is on. */
-export type NetLevel = 'none' | 'high' | 'low' | 'floating';
+export type NetLevel = 'none' | 'high' | 'low' | 'floating' | 'switching';
+
+const HIGH = 0xef4444;
+const LOW = 0x334155;
 
 function flat(opacity: number): THREE.MeshBasicMaterial {
   return new THREE.MeshBasicMaterial({
@@ -25,6 +28,46 @@ function flat(opacity: number): THREE.MeshBasicMaterial {
 const squareRing = (inner: number, outer: number): THREE.BufferGeometry =>
   new THREE.RingGeometry(inner, outer, 4, 1, Math.PI / 4).rotateX(-Math.PI / 2);
 
+/**
+ * squareRing(inner, outer) cut down the middle, its left half coloured high and its right half low:
+ * the look of a hole switching faster than the screen shows. Other materials ignore the colours.
+ */
+function splitSquareRing(inner: number, outer: number): THREE.BufferGeometry {
+  const a = outer / Math.SQRT2;
+  const b = inner / Math.SQRT2;
+  const high = new THREE.Color(HIGH);
+  const low = new THREE.Color(LOW);
+  const position: number[] = [];
+  const color: number[] = [];
+  const rect = (x0: number, x1: number, y0: number, y1: number): void => {
+    const c = x0 + x1 < 0 ? high : low;
+    for (const [x, y] of [
+      [x0, y0],
+      [x1, y0],
+      [x1, y1],
+      [x0, y0],
+      [x1, y1],
+      [x0, y1],
+    ]) {
+      position.push(x, y, 0);
+      color.push(c.r, c.g, c.b);
+    }
+  };
+  rect(-a, -b, -a, a);
+  rect(b, a, -a, a);
+  for (const [x0, x1] of [
+    [-b, 0],
+    [0, b],
+  ]) {
+    rect(x0, x1, b, a);
+    rect(x0, x1, -a, -b);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(position, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(color, 3));
+  return g.rotateX(-Math.PI / 2);
+}
+
 export class Markers {
   readonly group = new THREE.Group();
   private readonly hover = new THREE.Mesh(squareRing(1.05, 1.5));
@@ -34,12 +77,13 @@ export class Markers {
     bad: themed(flat(1), 'danger'),
     info: themed(flat(0.9), 'mark'),
   };
-  private readonly netGeometry = squareRing(0.86, 1.14);
+  private readonly netGeometry = splitSquareRing(0.86, 1.14);
   private readonly netMaterials: Record<NetLevel, THREE.MeshBasicMaterial> = {
     none: themed(flat(0.5), 'mark'),
-    high: Object.assign(flat(0.75), { color: new THREE.Color(0xef4444) }),
-    low: Object.assign(flat(0.6), { color: new THREE.Color(0x334155) }),
+    high: Object.assign(flat(0.75), { color: new THREE.Color(HIGH) }),
+    low: Object.assign(flat(0.6), { color: new THREE.Color(LOW) }),
     floating: Object.assign(flat(0.7), { color: new THREE.Color(0xf59e0b) }),
+    switching: Object.assign(flat(0.7), { vertexColors: true }),
   };
   private level: NetLevel = 'none';
   private net: THREE.InstancedMesh;

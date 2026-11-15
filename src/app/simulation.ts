@@ -2,7 +2,7 @@
 // changes, runs it in real time while anything in it moves by itself (a 555 ticking, a capacitor
 // charging), and lights up LEDs and displays to match.
 
-import type { Edge, Id, MeterDoc, PartDoc, ProbeDoc, WireDoc } from '../engine/circuit';
+import type { Edge, HoleRef, Id, MeterDoc, PartDoc, ProbeDoc, WireDoc } from '../engine/circuit';
 import { PARTS, withPowerJumper, type PowerSide } from '../engine/parts';
 import type { Cpu65 } from '../engine/sim/cpu65';
 import { Simulator, type SimResult } from '../engine/sim/simulator';
@@ -33,6 +33,8 @@ import { ohmmeterVolts } from '../engine/sim/simulator';
 const FRAME_BUDGET_MS = 9;
 /** Readouts around the 3D view update this often while the circuit runs. */
 const READOUT_MS = 120;
+/** A net that goes high at least this often in one readout counts as switching faster than the screen shows. */
+const SWITCHING_RISES = 2;
 /** Circuit time probe traces are kept for, seconds; a little more than the widest view. */
 const TRACE_SECONDS = 12;
 /** Most points a trace keeps; older ones go first. */
@@ -86,6 +88,23 @@ interface ScopeWatch {
   ch2: number;
 }
 
+/** A net switching faster than the screen can show: how often it goes high, and the share of the time it's high. */
+export interface Switching {
+  hz: number;
+  duty: number;
+}
+
+/** Each net's edge count where the current readout began, to tell how it switched over the readout. */
+interface EdgeBase {
+  generation: number;
+  /** performance.now() and circuit time when it was taken. */
+  at: number;
+  time: number;
+  rises: Float64Array;
+  lastRise: Float64Array;
+  high: Float64Array;
+}
+
 export class Simulation {
   result: SimResult;
   /** How much of real time the circuit keeps up with (1 = all of it). */
@@ -95,6 +114,9 @@ export class Simulation {
   /** Wires show the level they carry (instead of their own colours) while the circuit runs. */
   wireLevels = false;
   private readonly sim = new Simulator();
+  /** Per net, how it switched over the last readout: null if it went high fewer than SWITCHING_RISES times. */
+  private switchingNets: (Switching | null)[] = [];
+  private edgeBase: EdgeBase | null = null;
   private readonly glow = new Glow();
   private readonly screens = new LcdScreens();
   private readonly pressed = new Set<Id>();
@@ -581,12 +603,61 @@ export class Simulation {
     trace.v.splice(0, drop);
   }
 
+  /** Whether the net hole `ref` is on switches faster than the screen can show, and how. */
+  switching(ref: HoleRef): Switching | null {
+    if (!this.result.live) return null;
+    const n = this.sim.netOf(ref);
+    return n >= 0 ? (this.switchingNets[n] ?? null) : null;
+  }
+
+  /**
+   * Once a readout's time has passed, works out how each net switched over it. A rebuild restarts
+   * the count, keeping what was found till the next readout says otherwise, so turning a knob
+   * doesn't make a switching pin flicker.
+   */
+  private rollSwitching(now: number): void {
+    const sim = this.sim;
+    const count = sim.edgeNets;
+    const base = this.edgeBase;
+    const same = !!base && base.generation === sim.generation && base.rises.length === count;
+    if (same && now - base.at < READOUT_MS) return;
+    const next: EdgeBase = {
+      generation: sim.generation,
+      at: now,
+      time: sim.time,
+      rises: new Float64Array(count),
+      lastRise: new Float64Array(count),
+      high: new Float64Array(count),
+    };
+    for (let n = 0; n < count; n++) {
+      const e = sim.edges(n);
+      next.rises[n] = e.rises;
+      next.lastRise[n] = e.lastRise;
+      next.high[n] = e.high;
+    }
+    if (same) {
+      const dt = next.time - base.time;
+      this.switchingNets = Array.from({ length: count }, (_, n) => {
+        const rises = next.rises[n] - base.rises[n];
+        if (rises < SWITCHING_RISES || !(dt > 0)) return null;
+        // From one rising edge to another is whole periods, so a steady clock reads exactly.
+        const span = next.lastRise[n] - base.lastRise[n];
+        const hz = span > 0 ? rises / span : rises / dt;
+        const duty = Math.max(0, Math.min(1, (next.high[n] - base.high[n]) / dt));
+        return { hz, duty };
+      });
+    } else if (this.switchingNets.length !== count) this.switchingNets = [];
+    this.edgeBase = next;
+  }
+
   private refresh(readouts: boolean): void {
     this.result = this.sim.snapshot();
+    this.rollSwitching(performance.now());
     this.updateGlow();
     this.updateScreens();
     const result = this.result;
     const level = (w: WireDoc): WireLevel => {
+      if (this.switching(w.a)) return 'S';
       const v = result.volts(w.a) ?? result.volts(w.b) ?? NaN;
       return v >= 2 ? 'H' : v <= 0.8 ? 'L' : 'Z';
     };

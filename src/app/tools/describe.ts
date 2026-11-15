@@ -15,11 +15,11 @@ import {
   SEGMENT_PINS,
   type PartDef,
 } from '../../engine/parts';
-import { formatTime, formatVolts } from '../../engine/scope';
+import { formatFrequency, formatTime, formatVolts } from '../../engine/scope';
 import { sketchOf } from '../../engine/sim/nano';
 import type { ScreenTag } from '../../ui/tags';
 import type { HoleHit, ItemRef, SceneSync } from '../scene-sync';
-import type { Simulation } from '../simulation';
+import type { Simulation, Switching } from '../simulation';
 import type { Store } from '../store';
 
 /** What the descriptions read from. */
@@ -32,6 +32,11 @@ export interface Describing {
 }
 
 /** How a voltage reads to TTL logic. */
+/** A pin switching faster than the screen shows: how often, and how much of the time it's high. */
+export function describeSwitching(s: Switching): string {
+  return `Switching, ${formatFrequency(s.hz)}, ${Math.round(s.duty * 100)} % high`;
+}
+
 export function describeVolts(v: number): string {
   if (!Number.isFinite(v)) return 'Floating';
   const level = v >= 2 ? 'high' : v <= 0.8 ? 'low' : 'invalid';
@@ -100,7 +105,8 @@ export function describeHoleHit(d: Describing, h: HoleHit): string[] {
     const scope = sync.scope(h.ref.board);
     const label = meter || scope ? h.ref.hole : h.ref.hole === '+' ? '+' : '−';
     const name = meter ? 'Multimeter' : scope ? 'Oscilloscope' : 'Bench supply';
-    return [name, `${label} terminal`, ...(v !== null ? [describeVolts(v)] : [])];
+    const sw = live ? sim.switching(h.ref) : null;
+    return [name, `${label} terminal`, ...(sw ? [describeSwitching(sw)] : v !== null ? [describeVolts(v)] : [])];
   }
   const fields = [describeHole(h.hole)];
   if (store.doc.boards.length > 1) fields.unshift(`Board ${sync.boardNumber(h.board.id)}`);
@@ -112,7 +118,9 @@ export function describeHoleHit(d: Describing, h: HoleHit): string[] {
   }
   if (live) {
     const v = sim.result.volts(h.ref);
-    if (v !== null) fields.push(describeVolts(v));
+    const sw = sim.switching(h.ref);
+    if (sw) fields.push(describeSwitching(sw));
+    else if (v !== null) fields.push(describeVolts(v));
   }
   return fields;
 }

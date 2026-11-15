@@ -276,6 +276,27 @@ describe('Time', () => {
     expect(period).toBeLessThan((high + low) * 1.03);
   });
 
+  it("counts a 555's rising edges and time high, for showing pins that switch faster than the screen", () => {
+    // R1 1 kΩ, R2 10 kΩ, 1 µF: about 66 Hz, high a little over half the time.
+    const b = astable(1000, 10000, 1e-6);
+    b.run();
+    b.sim.advance(0.05);
+    const net = b.sim.netOf(h(out555));
+    const before = b.sim.edges(net);
+    const t0 = b.sim.time;
+    b.sim.advance(0.5);
+    const after = b.sim.edges(net);
+    const high = Math.log(2) * 11000 * 1e-6;
+    const low = Math.log((10 / 3 - 0.1) / (5 / 3 - 0.1)) * 10000 * 1e-6;
+    // Rising edge to rising edge is whole periods.
+    const hz = (after.rises - before.rises) / (after.lastRise - before.lastRise);
+    expect(hz).toBeGreaterThan(0.97 / (high + low));
+    expect(hz).toBeLessThan(1.03 / (high + low));
+    const duty = (after.high - before.high) / (b.sim.time - t0);
+    expect(duty).toBeGreaterThan((high / (high + low)) * 0.95);
+    expect(duty).toBeLessThan((high / (high + low)) * 1.05);
+  });
+
   it('stops right on the edge a breakpoint watches, and steps from one change to the next', () => {
     const b = astable(1000, 10000, 10e-6);
     b.run();

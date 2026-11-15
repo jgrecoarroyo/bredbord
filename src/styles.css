@@ -1211,6 +1211,9 @@ select[data-dd] {
 .lv.mid {
   background: linear-gradient(to top, var(--ink) 50%, transparent 50%);
 }
+.lv.sw {
+  background: linear-gradient(to bottom right, var(--ink) 50%, transparent 50%);
+}
 .lv.loose {
   border-color: var(--ink-3);
   border-style: dashed;

@@ -6,7 +6,7 @@ import type { HoleHit, SceneSync } from '../app/scene-sync';
 import type { Simulation } from '../app/simulation';
 import type { Store } from '../app/store';
 import type { Tools } from '../app/tools/tools';
-import { describePin } from '../app/tools/describe';
+import { describePin, describeSwitching } from '../app/tools/describe';
 import { boardSpec } from '../engine/breadboard';
 import { holeKey, sameHole } from '../engine/circuit';
 import { $, el } from './dom';
@@ -104,7 +104,9 @@ export class HoverCard {
     if (this.sim.result.live) {
       const row = el('div', 'hv');
       const v = this.sim.result.volts(h.ref);
+      const sw = this.sim.switching(h.ref);
       if (v === null) row.append(el('span', 'mut', 'No voltage'));
+      else if (sw) row.append(el('span', 'lv sw'), document.createTextNode(describeSwitching(sw)));
       else {
         const lv = levelOf(v);
         row.append(

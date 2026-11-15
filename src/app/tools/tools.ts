@@ -2715,7 +2715,17 @@ export class Tools {
     // While the circuit runs, the connected holes show the logic level like a probe would.
     const v = h && this.sim.result.live ? this.sim.result.volts(h.ref) : null;
     this.markers.setLevel(
-      v === null ? 'none' : !Number.isFinite(v) ? 'floating' : v >= 2 ? 'high' : v <= 0.8 ? 'low' : 'floating',
+      v === null
+        ? 'none'
+        : h && this.sim.switching(h.ref)
+          ? 'switching'
+          : !Number.isFinite(v)
+            ? 'floating'
+            : v >= 2
+              ? 'high'
+              : v <= 0.8
+                ? 'low'
+                : 'floating',
     );
   }
 

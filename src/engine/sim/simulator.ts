@@ -447,6 +447,18 @@ export class Simulator {
   private nvram = new Map<Id, { bytes: Uint8Array; source: string | undefined }>();
   private written = new Set<Id>();
 
+  /**
+   * Per net, for showing pins that switch faster than the screen: its logic level as last seen (-1
+   * none yet), how many times it has gone high, when it last did, and how long it has been high in
+   * all (`highFrom`: since when, while it is). Counted from the last rebuild, which bumps `generation`.
+   */
+  private edgeLevel = new Int8Array(0);
+  private rises = new Float64Array(0);
+  private lastRise = new Float64Array(0);
+  private highFrom = new Float64Array(0);
+  private highTotal = new Float64Array(0);
+  generation = 0;
+
   /** Lights are shown averaged over each frame, so fast blinking reads as dimmer, like it does to the eye. */
   private windowStart = 0;
   private windowCharge = new Float64Array(0);
@@ -559,11 +571,13 @@ export class Simulator {
       this.memory.clear();
       this.capVolts.clear();
       this.resetWindow();
+      this.resetEdges(0);
       return;
     }
 
     const net = (this.net = new Network(netIndex.size, fixed));
     const count = netIndex.size;
+    this.resetEdges(count);
     this.readers = Array.from({ length: count }, () => []);
     this.watched = Array.from({ length: count }, () => []);
     doc.parts.forEach((part, k) => {
@@ -1130,7 +1144,44 @@ export class Simulator {
 
   private readonly touched = (n: number): void => {
     for (const chip of this.readers[n]) this.mark(chip);
+    this.noteLevel(n);
   };
+
+  private resetEdges(count: number): void {
+    this.edgeLevel = new Int8Array(count).fill(-1);
+    this.rises = new Float64Array(count);
+    this.lastRise = new Float64Array(count).fill(NaN);
+    this.highFrom = new Float64Array(count);
+    this.highTotal = new Float64Array(count);
+    this.generation++;
+  }
+
+  /** Counts net `n` going high or low. In between (or floating) isn't a level, so it changes nothing. */
+  private noteLevel(n: number): void {
+    const v = this.net!.volts[n];
+    const level = v >= 2 ? 1 : v <= 0.8 ? 0 : -1;
+    const was = this.edgeLevel[n];
+    if (level < 0 || level === was) return;
+    if (level === 1) {
+      if (was === 0) {
+        this.rises[n]++;
+        this.lastRise[n] = this.time;
+      }
+      this.highFrom[n] = this.time;
+    } else if (was === 1) this.highTotal[n] += this.time - this.highFrom[n];
+    this.edgeLevel[n] = level;
+  }
+
+  /** How many nets the edges are counted on (0 with the power off). */
+  get edgeNets(): number {
+    return this.rises.length;
+  }
+
+  /** Net `n`'s edge count so far: times it went high, when it last did (NaN never), seconds spent high. */
+  edges(n: number): { rises: number; lastRise: number; high: number } {
+    const high = this.highTotal[n] + (this.edgeLevel[n] === 1 ? this.time - this.highFrom[n] : 0);
+    return { rises: this.rises[n], lastRise: this.lastRise[n], high };
+  }
 
   /** Lets the chips react, a gate delay at a time, until nothing changes. False if it never stops. */
   private settle(): boolean {

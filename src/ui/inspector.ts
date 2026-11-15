@@ -28,6 +28,7 @@ import { CHIP_MODELS, GATE_LAYOUTS, type GateLayout } from '../engine/sim/chips'
 import { CUSTOM_IMAGE, IMAGES, parseFirmwareHex, SKETCHES, sketchOf } from '../engine/sim/nano';
 import { encodeBytes } from '../engine/sim/simulator';
 import type { Store } from '../app/store';
+import { describeSwitching } from '../app/tools/describe';
 import { Card, checkbox, choice, numberField, select, valueSelect, type InspectorDeps } from './card';
 import { BLOCK_LAYOUTS, blockDrawing, gatesDrawing, type BlockLayout } from './gates';
 import { $, capitalise, download, el, hexDigits, safeFileName, setText } from './dom';
@@ -1092,10 +1093,11 @@ function pinList(
         const v = live ? sim.result.volts(ref) : null;
         m.hidden = v === null;
         if (v === null) return;
-        const lvl = !Number.isFinite(v) ? 'loose' : v >= 2 ? 'hi' : v <= 0.8 ? '' : 'mid';
+        const sw = live ? sim.switching(ref) : null;
+        const lvl = sw ? 'sw' : !Number.isFinite(v) ? 'loose' : v >= 2 ? 'hi' : v <= 0.8 ? '' : 'mid';
         const cls = `lv${lvl ? ` ${lvl}` : ''}`;
         if (m.className !== cls) m.className = cls;
-        m.title = !Number.isFinite(v) ? 'Floating' : `${v.toFixed(2)} V`;
+        m.title = sw ? describeSwitching(sw) : !Number.isFinite(v) ? 'Floating' : `${v.toFixed(2)} V`;
       });
     });
   }
