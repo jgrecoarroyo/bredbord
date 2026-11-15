@@ -264,6 +264,11 @@ interface Placed {
 interface Entry extends Placed {
   /** Where it runs, for a jumper; a lead hangs in the air and has none. */
   route: Route | null;
+  /**
+   * The colour its insulation was merged under. Kept apart from doc.color: a recolour changes the
+   * doc in place, and the old colour's mesh still has to be told to drop it.
+   */
+  color: WireColor;
   shape: WireShape;
   insulation: THREE.BufferGeometry;
   bare: THREE.BufferGeometry;
@@ -279,6 +284,7 @@ function buildEntry(w: Placed, route: Route | null): Entry {
   return {
     ...w,
     route,
+    color: w.doc.color,
     shape,
     insulation: quality.ribbon ? ribbon(shape.insulation) : tube(shape.insulation, WIRE_RADIUS, SIDES),
     bare: bareGeometry(shape),
@@ -456,7 +462,7 @@ export class WireLayer {
       const old = this.entries.get(w.doc.id);
       const same =
         old &&
-        old.doc.color === w.doc.color &&
+        old.color === w.doc.color &&
         old.a.equals(w.a) &&
         old.b.equals(w.b) &&
         old.bends.length === w.bends.length &&
@@ -468,7 +474,7 @@ export class WireLayer {
         continue;
       }
       if (old) {
-        dirty.add(old.doc.color);
+        dirty.add(old.color);
         disposeEntry(old);
       }
       dirty.add(w.doc.color).add('bare');
@@ -476,7 +482,7 @@ export class WireLayer {
     }
     for (const [id, e] of this.entries) {
       if (next.has(id)) continue;
-      dirty.add(e.doc.color).add('bare');
+      dirty.add(e.color).add('bare');
       disposeEntry(e);
     }
     this.entries = next;
@@ -627,7 +633,7 @@ export class WireLayer {
     }
     const geoms: THREE.BufferGeometry[] = [];
     for (const e of this.entries.values()) {
-      const g = key === 'bare' ? e.bare : e.doc.color === key ? e.insulation : null;
+      const g = key === 'bare' ? e.bare : e.color === key ? e.insulation : null;
       if (g?.attributes.position) geoms.push(g);
     }
     const geometry = geoms.length ? mergeGeometries(geoms) : null;
