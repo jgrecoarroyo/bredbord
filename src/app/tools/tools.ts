@@ -1576,7 +1576,12 @@ export class Tools {
         this.track(e);
         return this.drop(g);
       case 'knob':
-        return;
+        // Turned, it was a turn. Clicked without turning it: the pot is picked, like any part, for its card.
+        if (movedFrom(g, e)) return;
+        if ((this.fit.part(g.id)?.state ?? 500) !== g.was) this.sim.setKnob(g.id, g.was);
+        this.selection = { kind: 'part', id: g.id };
+        this.group = [];
+        return this.refresh();
       case 'instrument':
         if (g.moved) return;
         break;
