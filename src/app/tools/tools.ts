@@ -2692,6 +2692,10 @@ export class Tools {
     const kind = item.kind === 'part' ? this.fit.partDef(item.id)?.kind : undefined;
     const live = this.sim.result.live;
     if (live && (kind === 'button' || kind === 'dipswitch' || kind === 'slide' || kind === 'pot')) return 'pointer';
+    // A board only moves once it's selected; until then a drag on it moves the view.
+    const doc = this.store.doc;
+    if (item.kind === 'board' && this.selection?.id !== item.id && this.selection?.id !== unitOf(doc, item.id))
+      return '';
     return 'grab';
   }
 
