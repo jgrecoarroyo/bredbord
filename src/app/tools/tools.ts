@@ -803,7 +803,10 @@ export class Tools {
     const placing = this.placing;
     if (placing && flips(placing)) this.flipped = !this.flipped;
     else if (bendable(placing) || twoLegged(placing)) this.ledDirection = (this.ledDirection + 1) % 4;
-    else if (this.selection?.kind === 'part' || this.group.some((g) => g.kind === 'part')) {
+    else if (!this.group.length && this.selection?.kind === 'part' && twoLegged(this.fit.partDef(this.selection.id))) {
+      this.turnQuarter(this.selection.id);
+      return;
+    } else if (this.selection?.kind === 'part' || this.group.some((g) => g.kind === 'part')) {
       // One part, or every part in a group, turns end for end in its own holes.
       const ids = new Set(
         (this.group.length ? this.group : [this.selection!]).filter((g) => g.kind === 'part').map((g) => g.id),
@@ -814,6 +817,34 @@ export class Tools {
       return;
     } else return;
     this.refresh();
+  }
+
+  /**
+   * Turns a placed resistor or diode a quarter turn about its first leg, as R does while placing it:
+   * across the board, then along it. Its legs stay as far apart as they were.
+   */
+  private turnQuarter(id: Id): void {
+    const part = this.fit.part(id);
+    const def = part && PARTS[part.def];
+    if (!part || !def || part.pins.length !== 2) return;
+    const [a, b] = part.pins;
+    const board = this.store.doc.boards.find((x) => x.id === a.board);
+    const spec = board && boardSpec(board.type);
+    const ha = spec?.hole(a.hole);
+    const hb = b.board === a.board ? spec?.hole(b.hole) : undefined;
+    if (!spec || !ha || !hb) return this.toast("It can't turn there");
+    const dc = hb.col - ha.col;
+    const dr = hb.row - ha.row;
+    const other = spec.holeAt(ha.col - dr, ha.row + dc);
+    if (!other) return this.toast('No hole for the other leg there');
+    const pins = [a, { board: a.board, hole: other.name }];
+    const world = pins.map((r) => this.sync.holeWorld(r)!);
+    const reason = this.fit.holesReason([pins[1]], id) ?? this.fit.bodyReason(def, world, id, part.value);
+    if (reason) return this.toast(reason);
+    this.store.update((doc) => {
+      const p = doc.parts.find((x) => x.id === id);
+      if (p) p.pins = pins;
+    });
   }
 
   // ---- selection ----
