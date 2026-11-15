@@ -1156,10 +1156,14 @@ export class Simulator {
     this.generation++;
   }
 
-  /** Counts net `n` going high or low. In between (or floating) isn't a level, so it changes nothing. */
+  /**
+   * Counts net `n` going high or not. Anything under the high threshold counts as not high, so a
+   * timing capacitor swinging between 1/3 and 2/3 of the supply counts as switching too. Floating
+   * changes nothing.
+   */
   private noteLevel(n: number): void {
     const v = this.net!.volts[n];
-    const level = v >= 2 ? 1 : v <= 0.8 ? 0 : -1;
+    const level = v >= 2 ? 1 : v < 2 ? 0 : -1;
     const was = this.edgeLevel[n];
     if (level < 0 || level === was) return;
     if (level === 1) {
