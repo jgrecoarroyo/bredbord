@@ -380,4 +380,127 @@ describe('Logic chips', () => {
       expect(chip.out(CO)).toBe(1);
     });
   });
+
+  describe('74HC153', () => {
+    const A = 14,
+      B = 2;
+    const HALVES = [
+      { g: 1, c: [6, 5, 4, 3], y: 7 },
+      { g: 15, c: [10, 11, 12, 13], y: 9 },
+    ];
+    const select = (n: number) => ({ [A]: n & 1, [B]: (n >> 1) & 1 });
+
+    it('copies the selected C input to Y in each half, both halves sharing B and A', () => {
+      const chip = new Pins('74HC153').apply({ 1: 0, 15: 0 });
+      for (let n = 0; n < 4; n++) {
+        for (let lit = 0; lit < 4; lit++) {
+          // Only C[lit] is high in the first half and only C[lit] is low in the second.
+          const ins: Record<number, number> = { ...select(n) };
+          HALVES[0].c.forEach((pin, i) => (ins[pin] = i === lit ? 1 : 0));
+          HALVES[1].c.forEach((pin, i) => (ins[pin] = i === lit ? 0 : 1));
+          chip.apply(ins);
+          const hit = n === lit;
+          expect(chip.outs([7, 9]), `select ${n}, C${lit} marked`).toEqual([hit ? 1 : 0, hit ? 0 : 1]);
+        }
+      }
+    });
+
+    it('holds a half’s Y low while its G is high, whatever its C inputs say', () => {
+      // Every input floats high here, so both outputs would be high if enabled.
+      const chip = new Pins('74HC153');
+      expect(chip.outs([7, 9])).toEqual([0, 0]);
+      expect(chip.apply({ 1: 0 }).outs([7, 9])).toEqual([1, 0]);
+      expect(chip.apply({ 1: 1, 15: 0 }).outs([7, 9])).toEqual([0, 1]);
+    });
+
+    it('drives Y rail to rail on a real board', () => {
+      // Both G low and B, A low: Y copies C0. 1C0 is tied high, 2C0 low.
+      const b = new Bench().chip('u', '74HC153', 20);
+      const strip = (pin: number): string => sameStrip(pinHole('74HC153', 20, pin));
+      [1, 15, A, B, 10].forEach((pin, i) => b.toRail(strip(pin), pin < 9 ? 'B-' : 'T-', 22 + i * 2));
+      b.toRail(strip(6), 'B+', 30);
+      // The other C inputs are CMOS: tie them down rather than leave them floating.
+      [5, 4, 3].forEach((pin, i) => b.toRail(strip(pin), 'B-', 34 + i * 2));
+      [11, 12, 13].forEach((pin, i) => b.toRail(strip(pin), 'T-', 40 + i * 2));
+      const r = b.run();
+      expect(r.problems).toEqual([]);
+      expect(b.v(strip(7))).toBeGreaterThan(4.9);
+      expect(b.v(strip(9))).toBeLessThan(0.1);
+    });
+  });
+
+  describe('74HC165', () => {
+    const SH_LD = 1,
+      CLK = 2,
+      INH = 15,
+      SER = 10,
+      QH = 9,
+      NQH = 7;
+    /** A–H in datasheet order. */
+    const DATA = [11, 12, 13, 14, 3, 4, 5, 6];
+    const byte = (v: number) => Object.fromEntries(DATA.map((pin, i) => [pin, (v >> i) & 1]));
+    /** One clock pulse: CLK low, then back high. */
+    const pulse = (chip: Pins, pin = CLK): void => {
+      chip.apply({ [pin]: 0 });
+      chip.apply({ [pin]: 1 });
+    };
+    /** Loads `v` with SH/LD low and lets go, ready to shift with INH low. */
+    const loaded = (v: number): Pins =>
+      new Pins('74HC165').apply({ ...byte(v), [INH]: 0, [SH_LD]: 0 }).apply({ [SH_LD]: 1 });
+
+    it('copies A–H in while SH/LD is low, QH following H at once', () => {
+      const chip = new Pins('74HC165').apply({ ...byte(0x7f), [SH_LD]: 0 });
+      expect(chip.outs([QH, NQH])).toEqual([0, 1]);
+      chip.apply({ [6]: 1 });
+      expect(chip.outs([QH, NQH])).toEqual([1, 0]);
+      // The clock means nothing while it loads.
+      chip.apply({ [INH]: 0 });
+      pulse(chip);
+      expect(chip.out(QH)).toBe(1);
+    });
+
+    it('shifts H, G … A out of QH on rising edges, with SER coming in behind', () => {
+      const chip = loaded(0b1011_0010);
+      chip.apply({ [SER]: 1 });
+      const seen = [chip.out(QH)];
+      for (let n = 0; n < 10; n++) {
+        pulse(chip);
+        seen.push(chip.out(QH));
+      }
+      expect(seen).toEqual([1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1]);
+    });
+
+    it('shifts on the rising edge only', () => {
+      const chip = loaded(0b1000_0000).apply({ [SER]: 0, [CLK]: 0 });
+      expect(chip.out(QH)).toBe(1);
+      chip.apply({ [CLK]: 1 });
+      expect(chip.out(QH)).toBe(0);
+    });
+
+    it('stands still while INH is high, and a rising INH with CLK low shifts like a clock', () => {
+      const chip = loaded(0b0100_0000);
+      chip.apply({ [INH]: 1 });
+      pulse(chip);
+      pulse(chip);
+      expect(chip.out(QH)).toBe(0);
+      // CLK low, then INH rises: the ORed clock rises, so it shifts.
+      chip.apply({ [CLK]: 0, [INH]: 0 });
+      chip.apply({ [INH]: 1 });
+      expect(chip.out(QH)).toBe(1);
+    });
+
+    it('drives QH and its complement rail to rail on a real board', () => {
+      // SH/LD tied low loads for good: H high shows on QH.
+      const b = new Bench().chip('u', '74HC165', 20);
+      const strip = (pin: number): string => sameStrip(pinHole('74HC165', 20, pin));
+      b.toRail(strip(SH_LD), 'B-', 20).toRail(strip(6), 'B+', 26);
+      // Every other input tied down: CMOS inputs shouldn't float.
+      [CLK, 3, 4, 5].forEach((pin, i) => b.toRail(strip(pin), 'B-', 30 + i * 2));
+      [INH, SER, ...DATA.slice(0, 4)].forEach((pin, i) => b.toRail(strip(pin), 'T-', 30 + i * 2));
+      const r = b.run();
+      expect(r.problems).toEqual([]);
+      expect(b.v(strip(QH))).toBeGreaterThan(4.9);
+      expect(b.v(strip(NQH))).toBeLessThan(0.1);
+    });
+  });
 });

@@ -519,6 +519,23 @@ export const CHIP_MODELS: Readonly<Record<string, ChipModel>> = {
     },
   },
 
+  // Dual 4-to-1 mux: B and A (shared by both halves) pick which C input each Y copies; G (active low) forces its Y low.
+  '74HC153': {
+    family: 'HC',
+    vcc: 16,
+    gnd: 8,
+    inputs: [1, 2, 3, 4, 5, 6, 10, 11, 12, 13, 14, 15],
+    outputs: [7, 9],
+    eval(io) {
+      const selected = io.get(14) | (io.get(2) << 1);
+      const halves = [
+        [1, [6, 5, 4, 3], 7],
+        [15, [10, 11, 12, 13], 9],
+      ] as const;
+      for (const [g, c, y] of halves) io.set(y, io.get(g) ? 0 : io.get(c[selected]));
+    },
+  },
+
   // 4-bit synchronous counter: async clear, synchronous load, counts when ENP and ENT are high.
   '74LS161': {
     family: 'LS',
@@ -654,6 +671,27 @@ export const CHIP_MODELS: Readonly<Record<string, ChipModel>> = {
       else if (io.rose(11)) s.q = ((s.q << 1) | io.get(14)) & 0xff;
       put(io, [15, 1, 2, 3, 4, 5, 6, 7], io.get(13) ? null : s.latch);
       io.set(9, ((s.q >> 7) & 1) as Bit);
+    },
+  },
+
+  // Parallel-load shift register: while SH/LD is low, A–H are copied in at once (QH shows H). With SH/LD high, a
+  // rising edge of CLK while INH (the datasheet's CLK INH) is low shifts SER into A and every bit one place on towards
+  // H. Inside, the two clock pins are ORed, so a rising INH while CLK is low shifts too: the datasheet calls them
+  // interchangeable.
+  '74HC165': {
+    family: 'HC',
+    vcc: 16,
+    gnd: 8,
+    inputs: [1, 2, 3, 4, 5, 6, 10, 11, 12, 13, 14, 15],
+    outputs: [7, 9],
+    eval(io, s) {
+      const was = (pin: number): number => (io.rose(pin) ? 0 : io.fell(pin) ? 1 : io.get(pin));
+      const clocked = (io.get(2) | io.get(15)) === 1 && (was(2) | was(15)) === 0;
+      if (!io.get(1)) s.q = bits(io, [11, 12, 13, 14, 3, 4, 5, 6]);
+      else if (clocked) s.q = ((s.q << 1) | io.get(10)) & 0xff;
+      const qh = ((s.q >> 7) & 1) as Bit;
+      io.set(9, qh);
+      io.set(7, not(qh));
     },
   },
 

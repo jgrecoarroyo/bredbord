@@ -29,7 +29,7 @@ import { CUSTOM_IMAGE, IMAGES, parseFirmwareHex, SKETCHES, sketchOf } from '../e
 import { encodeBytes } from '../engine/sim/simulator';
 import type { Store } from '../app/store';
 import { Card, checkbox, choice, numberField, select, valueSelect, type InspectorDeps } from './card';
-import { gatesDrawing } from './gates';
+import { BLOCK_LAYOUTS, blockDrawing, gatesDrawing, type BlockLayout } from './gates';
 import { $, capitalise, download, el, hexDigits, safeFileName, setText } from './dom';
 import { syncSelect } from './menus';
 import { icon, paintIcons } from './px';
@@ -101,6 +101,7 @@ const CHIP_NOTES: Record<string, string> = {
   '74LS47': 'A BCD to 7-segment decoder, for common anode displays',
   '74LS125': 'Four buffers with tri-state outputs',
   '74LS157': 'Four 2-to-1 switches (multiplexers)',
+  '74HC153': 'Two 4-to-1 switches (multiplexers) sharing their select inputs',
   '74LS161': 'A 4-bit counter',
   '74LS193': 'A 4-bit up and down counter',
   '74LS173': 'A 4-bit register with tri-state outputs',
@@ -108,6 +109,7 @@ const CHIP_NOTES: Record<string, string> = {
   '74LS273': 'An 8-bit register',
   '74LS283': 'A 4-bit adder',
   '74HC595': 'An 8-bit shift register with a latch',
+  '74HC165': 'An 8-bit shift register that loads eight inputs at once and shifts them out one by one',
   NE555: 'A timer, for clocks and delays',
   W65C02S: 'A 6502 processor',
   AT28C256: '32K EEPROM',
@@ -740,7 +742,7 @@ export class Inspector {
       card.fold('Pins', (into) => into.append(pinList(def.pinNames, part, this.deps, card)));
       return 'wide';
     }
-    const gates = GATE_LAYOUTS[def.id];
+    const gates = GATE_LAYOUTS[def.id] ?? BLOCK_LAYOUTS[def.id];
     card.fold('Pins', (into) => into.append(pinList(def.pinNames, part, this.deps, card, false, gates)));
     return '';
   }
@@ -1036,7 +1038,7 @@ function pinList(
   deps: InspectorDeps,
   card: Card,
   inLine = false,
-  gates?: GateLayout,
+  gates?: GateLayout | BlockLayout,
 ): HTMLElement {
   const n = names.length;
   const half = Math.ceil(n / 2);
@@ -1045,8 +1047,8 @@ function pinList(
   const list = el('div', inLine ? 'pinl inline' : gates ? 'pinl dip gated' : 'pinl dip');
   const body = el('div', 'pkg');
   body.style.gridRow = `1 / span ${inLine ? n : half}`;
-  // Logic chips show their gates inside the outline, wired to their pins.
-  if (gates) body.append(gatesDrawing(gates, n));
+  // Logic chips show their gates (or blocks, for a mux or a register) inside the outline, wired to their pins.
+  if (gates) body.append('gates' in gates ? gatesDrawing(gates, n) : blockDrawing(gates, n));
   if (!inLine) body.append(el('span', 'notch'));
   list.classList.toggle('on-desk', !!part);
   list.append(body);
