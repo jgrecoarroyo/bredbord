@@ -75,6 +75,8 @@ interface PartEntry {
   bounds: THREE.Box3;
   /** Its body without the legs, for the box drawn round it when it's pointed at or selected. */
   outline: THREE.Box3;
+  /** The pieces left out of `outline` (its legs), hit-tested on their own so long legs don't make a huge box. */
+  legs: Piece[];
   /** Its solid pieces, which wires go round and other parts keep out of. */
   solid: Obstacle[];
 }
@@ -83,9 +85,54 @@ interface PartEntry {
  * A part's bounds without its legs: an LED's box hugs the lens, a resistor's its body. A chip keeps
  * its legs, which stick out of its sides; a part that's all legs keeps them all.
  */
-function outlineBounds(pieces: readonly Piece[]): THREE.Box3 {
+function bodyPieces(pieces: readonly Piece[]): readonly Piece[] {
   const body = pieces.filter((p) => !/-(legs|leads)-/.test(`${p.key}-`) || p.key.startsWith('chip-legs'));
-  return piecesBounds(body.length ? body : pieces);
+  return body.length ? body : pieces;
+}
+
+function outlineBounds(pieces: readonly Piece[]): THREE.Box3 {
+  return piecesBounds(bodyPieces(pieces));
+}
+
+/** How close (mm) the pointer has to come to a leg to point at its part. */
+const LEG_REACH = 0.6;
+
+/**
+ * How far along the ray it passes within `LEG_REACH` of one of these pieces, or null if it doesn't.
+ * Goes by the triangles' edges, so it's lenient enough to catch a thin leg.
+ */
+function nearPieces(ray: THREE.Ray, pieces: readonly Piece[]): number | null {
+  const a = new THREE.Vector3();
+  const b = new THREE.Vector3();
+  const c = new THREE.Vector3();
+  const onRay = new THREE.Vector3();
+  const reach = LEG_REACH ** 2;
+  let best: number | null = null;
+  for (const p of pieces) {
+    if (!p.geometry.boundingBox) p.geometry.computeBoundingBox();
+    const box = p.geometry.boundingBox!.clone().applyMatrix4(p.matrix).expandByScalar(LEG_REACH);
+    if (!ray.intersectsBox(box)) continue;
+    const pos = p.geometry.getAttribute('position');
+    const index = p.geometry.getIndex();
+    const count = index ? index.count : pos.count;
+    const at = (i: number, v: THREE.Vector3) =>
+      v.fromBufferAttribute(pos, index ? index.getX(i) : i).applyMatrix4(p.matrix);
+    for (let i = 0; i + 2 < count; i += 3) {
+      at(i, a);
+      at(i + 1, b);
+      at(i + 2, c);
+      for (const [u, v] of [
+        [a, b],
+        [b, c],
+        [c, a],
+      ] as const) {
+        if (ray.distanceSqToSegment(u, v, onRay) > reach) continue;
+        const d = onRay.distanceTo(ray.origin);
+        if (best === null || d < best) best = d;
+      }
+    }
+  }
+  return best;
 }
 
 export class SceneSync {
@@ -167,11 +214,13 @@ export class SceneSync {
           ? old
           : (() => {
               const pieces = partPieces(def, world, options);
+              const body = bodyPieces(pieces);
               return {
                 signature,
                 pieces,
                 bounds: piecesBounds(pieces),
                 outline: outlineBounds(pieces),
+                legs: pieces.filter((p) => !body.includes(p)),
                 solid: partObstacles(def, world, options),
               };
             })();
@@ -453,11 +502,19 @@ export class SceneSync {
     const hit = new THREE.Vector3();
     for (const [id, e] of this.parts) {
       if (id === this.hidden) continue;
-      const box = e.bounds.clone();
+      const box = e.bounds.clone().expandByScalar(LEG_REACH);
       box.min.y = Math.max(box.min.y, H);
-      if (!ray.intersectBox(box, hit)) continue;
-      const distance = hit.distanceTo(ray.origin);
-      if (!best || distance < best.distance) best = { item: { kind: 'part', id, point: hit.clone() }, distance };
+      if (!ray.intersectsBox(box)) continue;
+      // The whole box, legs and all, can be far bigger than the part (long legs run off at an angle):
+      // only its body's box or the legs themselves count.
+      const body = e.outline.clone();
+      body.min.y = Math.max(body.min.y, H);
+      let distance: number | null = ray.intersectBox(body, hit) ? hit.distanceTo(ray.origin) : null;
+      const leg = nearPieces(ray, e.legs);
+      if (leg !== null && (distance === null || leg < distance)) distance = leg;
+      if (distance === null) continue;
+      if (!best || distance < best.distance)
+        best = { item: { kind: 'part', id, point: ray.at(distance, new THREE.Vector3()) }, distance };
     }
     const supply = this.supplies.pick(ray);
     if (supply && (!best || supply.distance < best.distance)) {
