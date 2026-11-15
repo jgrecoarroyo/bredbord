@@ -42,23 +42,8 @@ export const twoLegged = (def: PartDef | null | undefined): boolean =>
 /** Parts that drop in with their legs side by side, or can be dragged out to bend them further apart. */
 export const bendable = (def: PartDef | null | undefined): boolean => def?.kind === 'led' || def?.kind === 'capacitor';
 /** Parts that sit across the centre channel and have to keep their rows when moved. */
-export const straddles = (def: PartDef | null | undefined): boolean => !!def && !!dipFootprint(def);
-/**
- * A button's two rows of legs (three pitches apart, as across the channel), by the row the pointer's on: across
- * the channel from e or f, otherwise in that half, a to d or b to e, f to i or g to j.
- */
-const BUTTON_ROWS: Readonly<Record<string, readonly [string, string]>> = {
-  a: ['a', 'd'],
-  b: ['a', 'd'],
-  c: ['b', 'e'],
-  d: ['b', 'e'],
-  e: ['e', 'f'],
-  f: ['e', 'f'],
-  g: ['f', 'i'],
-  h: ['f', 'i'],
-  i: ['g', 'j'],
-  j: ['g', 'j'],
-};
+export const straddles = (def: PartDef | null | undefined): boolean =>
+  !!def && (!!dipFootprint(def) || def.kind === 'button');
 /** Parts the R key flips end for end rather than turns. */
 export const flips = (def: PartDef): boolean =>
   !!dipFootprint(def) ||
@@ -94,12 +79,12 @@ export function placementFor(fit: Fit, def: PartDef, hit: HoleHit, o: Orientatio
   let reason: string | undefined;
 
   // Chips and buttons over a power rail are shown red at the nearest column, so it's clear they won't go there.
-  if ((straddles(def) || def.kind === 'button') && h.hole.kind !== 'terminal') {
+  if (straddles(def) && h.hole.kind !== 'terminal') {
     const e = spec.hole('e1');
     const near = e && spec.nearestHole(h.hole.x, e.z, 2 * PITCH);
     if (!near) return null;
     h = { ...h, hole: near };
-    reason = straddles(def) ? 'It has to go across the centre channel' : 'It has to go in the terminal rows';
+    reason = 'It has to go across the centre channel';
   }
   const footprint = dipFootprint(def);
   if (footprint) {
@@ -110,13 +95,10 @@ export function placementFor(fit: Fit, def: PartDef, hit: HoleHit, o: Orientatio
     switch (def.kind) {
       case 'button': {
         const c = Math.max(0, Math.min(spec.columns - 3, h.hole.col)) + 1;
-        const [top, bottom] = BUTTON_ROWS[h.hole.name[0]] ?? ['e', 'f'];
-        const [e1, e2, f1, f2] = [`${top}${c}`, `${top}${c + 2}`, `${bottom}${c}`, `${bottom}${c + 2}`].map((n) =>
-          spec.hole(n)!,
-        );
-        // Like a real 6 mm switch: the legs facing each other three rows apart are always joined, so
-        // pressing joins column to column. Turned, the pairs run along the board instead and pressing
-        // joins its top row to its bottom row (across the channel, one half of the board to the other).
+        const [e1, e2, f1, f2] = [`e${c}`, `e${c + 2}`, `f${c}`, `f${c + 2}`].map((n) => spec.hole(n)!);
+        // Like a real 6 mm switch across the channel: the legs facing each other over it are always
+        // joined, so pressing joins column to column. Turned, the pairs run along the board instead
+        // and pressing joins the top half of the board to the bottom half.
         holes = o.flipped ? [e1, e2, f1, f2] : [e1, f1, e2, f2];
         break;
       }
