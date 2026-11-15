@@ -300,7 +300,7 @@ export class Tools {
   wireColor: WireColor = 'red';
   placing: PartDef | null = null;
   selection: ItemRef | null = null;
-  /** Several parts and wires selected together (box select, Shift-click); empty when one or none is. */
+  /** Several parts and wires selected together (box select, Shift- or Ctrl-click); empty when one or none is. */
   group: ItemRef[] = [];
   /** What's under the pointer, as short readouts for the status bar. */
   hoverFields: string[] = [];
@@ -1016,7 +1016,7 @@ export class Tools {
     this.store.update((doc) => deleteItem(doc, sel));
   }
 
-  /** Ctrl+C: remembers the selected part, value and all, or the selected group. */
+  /** Remembers the selected part, value and all, or the selected group (Ctrl+C, which then pastes it). */
   copy(): boolean {
     if (this.group.length) {
       const clip = clipGroup(this.fit, new Set(this.group.map((g) => g.id)));
@@ -1505,7 +1505,8 @@ export class Tools {
       item?.kind === 'board' &&
       this.selection?.id !== item.id &&
       this.selection?.id !== unitOf(this.store.doc, item.id);
-    const adding = e.shiftKey || this.multiSelect;
+    // Shift, or Ctrl (Cmd), adds to what's selected: a click toggles one thing in or out, a drag boxes more.
+    const adding = e.shiftKey || e.ctrlKey || e.metaKey || this.multiSelect;
     if (!item || (item.kind === 'board' && (adding || unselectedBoard))) {
       if (!adding) return capture({ kind: 'pan', ...at, last: at, active: false });
       return capture({ kind: 'box', ...at, add: adding, active: false });
@@ -1654,7 +1655,7 @@ export class Tools {
     // Taps and pens can click without moving first, so re-aim at the click itself.
     this.track(e);
     this.refresh();
-    if (e.button === 0 && !this.spaceHeld) this.click(e.shiftKey || this.multiSelect);
+    if (e.button === 0 && !this.spaceHeld) this.click(e.shiftKey || this.multiSelect, e.ctrlKey || e.metaKey);
     else if (e.button === 2) this.cancel();
   }
 
@@ -1972,7 +1973,10 @@ export class Tools {
         this.store.redo();
         return true;
       case 'c':
-        return this.copy();
+        // Copied, it's straight away on the pointer to put down, so it's plain what was copied. Esc puts it away.
+        if (!this.copy()) return false;
+        this.paste();
+        return true;
       case 'v':
         this.paste();
         return true;
@@ -2063,7 +2067,7 @@ export class Tools {
 
   // ---- clicks ----
 
-  private click(shift = false): void {
+  private click(shift = false, ctrl = false): void {
     const h = this.hover;
     if (this.pasting) {
       this.dropPaste(this.pasting);
@@ -2086,7 +2090,7 @@ export class Tools {
     }
     switch (this.mode) {
       case 'select':
-        return this.clickSelect(shift);
+        return this.clickSelect(shift || ctrl);
       case 'probe':
         // Like a part: one probe per pick, then back to selecting.
         if (h && !h.terminal) {
