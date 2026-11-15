@@ -1439,6 +1439,11 @@ export class Tools {
       if (this.hover) capture({ kind: 'span', from: this.hover, active: false });
       return;
     }
+    if (this.mode === 'wire' && e.pointerType !== 'touch') {
+      // A drag moves the view, as on the empty desk; a click still puts down the wire's ends.
+      const at = { x: e.clientX, y: e.clientY };
+      return capture({ kind: 'pan', ...at, last: at, active: false });
+    }
     if (this.mode !== 'select' || this.pasting) return;
     this.track(e);
     this.refresh();
