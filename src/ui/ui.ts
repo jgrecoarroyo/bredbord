@@ -510,6 +510,7 @@ export class UI {
 
   private newCircuit(): void {
     this.tools.powerOff();
+    this.tools.dropUnfinished();
     this.store.replace(emptyDoc());
     this.view.fit(this.sync.boardsBox());
     this.toast('New circuit');
@@ -518,6 +519,7 @@ export class UI {
   /** Puts another circuit on the desk; a big one takes a moment to build, so the loader covers the desk. */
   private swapIn(doc: CircuitDoc): Promise<void> {
     this.tools.powerOff();
+    this.tools.dropUnfinished();
     return whileBusy($('#desk'), 'Opening the circuit', () => {
       this.store.replace(doc);
       this.view.fit(this.sync.boardsBox());

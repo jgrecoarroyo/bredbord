@@ -924,6 +924,19 @@ export class Tools {
     this.refresh();
   }
 
+  /**
+   * Drops anything half-done that belongs to the circuit on the desk (a wire being drawn, a paste),
+   * before another circuit takes its place. The tool in hand stays.
+   */
+  dropUnfinished(): void {
+    this.copyDrag = false;
+    this.pasting = null;
+    this.dragIn = null;
+    this.pending = null;
+    this.bends = [];
+    this.refresh();
+  }
+
   deleteSelection(): void {
     if (this.group.length) {
       const ids = new Set(this.group.map((g) => g.id));
