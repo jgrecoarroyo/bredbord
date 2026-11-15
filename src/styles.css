@@ -1111,6 +1111,18 @@ select[data-dd] {
   stroke: var(--ink);
   stroke-width: 1.2;
 }
+.gates .wall {
+  fill: none;
+  stroke: var(--ink-2);
+  stroke-width: 0.8;
+}
+.gates .dot {
+  fill: var(--ink-2);
+}
+.gates .label {
+  font: 400 7px/1 var(--mono);
+  fill: var(--ink-2);
+}
 /* the package, drawn between the two columns of pins */
 .pkg {
   grid-column: 2;
