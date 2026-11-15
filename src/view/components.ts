@@ -466,6 +466,8 @@ function diodePieces(def: DiodeDef, pins: readonly V[]): Piece[] {
 const DISC_R = 2.5;
 const DISC_T = 1.05;
 const DISC_Y = 1.2 + DISC_R;
+/** How far a ceramic disc is raised with its legs `span` apart: enough for them to bend under the drips. */
+const discLift = (span: number): number => (Math.abs(span - PITCH) < 0.01 ? 0 : 2.8);
 const discMaterial = new THREE.MeshStandardMaterial({ color: 0xc4712c, roughness: 0.6 });
 const codeMaterials = new Map<string, THREE.Material>();
 
@@ -540,10 +542,13 @@ function capacitorPieces(def: CapacitorDef, pins: readonly V[], farads: number):
       });
       codeMaterials.set(code, decal);
     }
+    // With its legs bent out the disc sits higher, so they bend below the drips on them.
+    const lift = discLift(span);
+    const raised = lift ? matrix.clone().multiply(new THREE.Matrix4().makeTranslation(0, lift, 0)) : matrix;
     return [
       {
         key: `cap-disc-legs-${span.toFixed(2)}`,
-        geometry: bentLegs('cap-disc-legs', span, DISC_Y - 1.2, 0.25),
+        geometry: bentLegs('cap-disc-legs', span, DISC_Y - 1.2 + lift, 0.25),
         material: tinMaterial,
         matrix,
       },
@@ -567,7 +572,7 @@ function capacitorPieces(def: CapacitorDef, pins: readonly V[], farads: number):
           return mergeGeometries([disc, drip(-PITCH / 2), drip(PITCH / 2)])!;
         }),
         material: discMaterial,
-        matrix,
+        matrix: raised,
       },
       {
         key: `cap-code-${code}`,
@@ -578,7 +583,7 @@ function capacitorPieces(def: CapacitorDef, pins: readonly V[], farads: number):
           ])!,
         ),
         material: decal,
-        matrix,
+        matrix: raised,
       },
     ];
   }
@@ -1747,14 +1752,15 @@ export function partObstacles(def: PartDef, pins: readonly V[], options: PartOpt
           .setY(0)
           .normalize()
           .multiplyScalar(DISC_R - DISC_T);
+        const lift = discLift(legSpan(pins));
         return [
-          ...legObstacles(pins, H + DISC_Y - 1.2, 0.25),
+          ...legObstacles(pins, H + DISC_Y - 1.2 + lift, 0.25),
           capsuleObstacle(
             mid.clone().sub(along),
             mid.clone().add(along),
             DISC_T,
-            H + DISC_Y + DISC_R,
-            H + DISC_Y - DISC_R,
+            H + DISC_Y + DISC_R + lift,
+            H + DISC_Y - DISC_R + lift,
           ),
         ];
       }
