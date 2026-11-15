@@ -653,6 +653,14 @@ function capacitorPieces(def: CapacitorDef, pins: readonly V[], farads: number):
 const POT_BODY = 7.4;
 /** The knob's radius: well inside the body, like a trimmer's. */
 const POT_KNOB_R = 1.8;
+
+/** Whether `ray` meets the knob of a potentiometer with its legs at `pins`, give or take a little. */
+export function potKnobAt(pins: readonly V[], ray: THREE.Ray): boolean {
+  const c = pins[1];
+  const top = new THREE.Plane(new THREE.Vector3(0, 1, 0), -(H + POT_KNOB_TOP));
+  const at = ray.intersectPlane(top, new THREE.Vector3());
+  return !!at && Math.hypot(at.x - c.x, at.z - c.z) < POT_KNOB_R + 0.6;
+}
 const POT_KNOB_TOP = 6.2;
 const potBody = new THREE.MeshStandardMaterial({ color: 0x2457c5, roughness: 0.5 });
 const knobMaterial = new THREE.MeshStandardMaterial({ color: 0xf1efea, roughness: 0.5 });

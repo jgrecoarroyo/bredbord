@@ -53,7 +53,7 @@ import {
 } from '../../engine/scope';
 import { SUPPLY_SIZE, SUPPLY_TERMINALS } from '../../engine/supply';
 import type { ScreenTag } from '../../ui/tags';
-import { buildPart, buttonCapAt, powerJumperAt, slideLeverAt } from '../../view/components';
+import { buildPart, buttonCapAt, potKnobAt, powerJumperAt, slideLeverAt } from '../../view/components';
 import { owned, tube } from '../../view/geometry';
 import { Markers, MAX_PROBES, ProbePins, type MarkerTone } from '../../view/markers';
 import { ghostify } from '../../view/materials';
@@ -251,6 +251,9 @@ const round1 = (v: number): number => Math.round(v * 10) / 10;
 const round2 = (v: number): number => Math.round(v * 100) / 100;
 const desk = (v: THREE.Vector3): DeskPoint => ({ x: round1(v.x), z: round1(v.z) });
 /** Whether the pointer has moved far enough from where it was pressed to count as a drag. */
+/** How near (mm) a click has to land to a DIP switch's slider slot to flip it rather than select the switch. */
+const DIP_SLOT_REACH = 2.4;
+
 const movedFrom = (p: Pressed, e: { clientX: number; clientY: number }): boolean =>
   Math.hypot(e.clientX - p.x, e.clientY - p.y) > DRAG_START;
 
@@ -341,6 +344,12 @@ export class Tools {
     const part = this.fit.part(id);
     const pins = part?.pins.map((r) => this.sync.holeWorld(r));
     return !!pins && pins.every((p) => !!p) && buttonCapAt(pins as THREE.Vector3[], this.view.rayFrom(this.ndc));
+  }
+
+  /** Whether the pointer is on potentiometer `id`'s knob, rather than its body. */
+  private onPotKnob(id: Id): boolean {
+    const pins = this.fit.part(id)?.pins.map((r) => this.sync.holeWorld(r));
+    return !!pins && pins.every((p) => !!p) && potKnobAt(pins as THREE.Vector3[], this.view.rayFrom(this.ndc));
   }
 
   /** Whether the pointer is on slide switch `id`'s lever, rather than its body. */
@@ -467,12 +476,10 @@ export class Tools {
     this.setMode(this.mode === 'wire' ? 'select' : 'wire');
   }
 
-  /** The push button under the pointer while the circuit runs, for its Hold popup. */
+  /** The push button under the pointer, for its Hold popup. */
   get hoveredButton(): Id | null {
     const item = this.hoverItem;
-    return this.sim.result.live && item?.kind === 'part' && this.fit.partDef(item.id)?.kind === 'button'
-      ? item.id
-      : null;
+    return item?.kind === 'part' && this.fit.partDef(item.id)?.kind === 'button' ? item.id : null;
   }
 
   /** The gesture under way, if it's of this kind. */
@@ -1490,8 +1497,8 @@ export class Tools {
       return this.pressInstrument(item, e, capture);
     }
     const def = item.kind === 'part' ? this.fit.partDef(item.id) : undefined;
-    if (this.sim.result.live && def?.kind === 'button' && this.onButtonCap(item.id)) {
-      // While the circuit runs, a push button's cap is pressed: down for as long as the mouse is.
+    if (def?.kind === 'button' && this.onButtonCap(item.id)) {
+      // A push button's cap is pressed, power on or off: down for as long as the mouse is.
       // A held one (its Hold popup, or Shift-click) is let go with a click. Its body is picked like any part.
       if (this.sim.isHeld(item.id)) this.sim.unhold(item.id);
       else if (e.shiftKey) this.sim.hold(item.id);
@@ -1501,7 +1508,7 @@ export class Tools {
       }
       return;
     }
-    if (this.sim.result.live && def?.kind === 'pot') {
+    if (def?.kind === 'pot' && this.onPotKnob(item.id)) {
       return capture({ kind: 'knob', ...at, id: item.id, was: this.fit.part(item.id)?.state ?? 500 });
     }
     capture({
@@ -1904,7 +1911,7 @@ export class Tools {
       this.refresh();
       return;
     }
-    if (!this.sim.result.live || item?.kind !== 'part' || this.fit.partDef(item.id)?.kind !== 'pot') return;
+    if (item?.kind !== 'part' || this.fit.partDef(item.id)?.kind !== 'pot') return;
     e.preventDefault();
     this.sim.setKnob(item.id, (this.fit.part(item.id)?.state ?? 500) - Math.sign(e.deltaY) * KNOB_PER_NOTCH);
   }
@@ -2089,10 +2096,10 @@ export class Tools {
     }
     const item = this.hoverItem;
     const def = item?.kind === 'part' ? this.fit.partDef(item.id) : undefined;
-    const live = this.sim.result.live;
-    // While the circuit runs, clicking a switch flips it.
-    if (item && live && def?.kind === 'dipswitch' && item.point) {
-      this.sim.toggleSwitch(item.id, this.switchAt(item.id, item.point));
+    // Clicking a switch's slider flips it, power on or off; clicking the rest of it selects it.
+    const slot = item && def?.kind === 'dipswitch' && item.point ? this.switchAt(item.id, item.point) : null;
+    if (item && slot && slot.distance < DIP_SLOT_REACH) {
+      this.sim.toggleSwitch(item.id, slot.index);
       return;
     }
     // A power module's jumper moves whenever it's clicked: to the pair clicked, or on round from where it sits.
@@ -2103,7 +2110,7 @@ export class Tools {
       this.sim.setPowerJumper(item.id, jumper.side, to);
       return;
     }
-    if (item && live && def?.kind === 'slide' && this.onSlideLever(item.id)) {
+    if (item && def?.kind === 'slide' && this.onSlideLever(item.id)) {
       this.sim.toggleSwitch(item.id, 0);
       return;
     }
@@ -2224,7 +2231,7 @@ export class Tools {
   }
 
   /** Which switch of a DIP switch is nearest to a point on it. */
-  private switchAt(id: Id, point: THREE.Vector3): number {
+  private switchAt(id: Id, point: THREE.Vector3): { index: number; distance: number } {
     const pins = this.fit.part(id)!.pins.map((r) => this.sync.holeWorld(r)!);
     const n = pins.length / 2;
     let best = 0;
@@ -2240,7 +2247,7 @@ export class Tools {
         best = k;
       }
     }
-    return best;
+    return { index: best, distance: bestDistance };
   }
 
   // ---- dragging ----
@@ -2670,7 +2677,7 @@ export class Tools {
     const item = this.hoverItem;
     switch (item?.kind) {
       case 'part':
-        return this.sim.result.live && this.fit.partDef(item.id)?.kind === 'pot';
+        return this.fit.partDef(item.id)?.kind === 'pot';
       case 'supply':
         return !!item.knob;
       case 'meter':
@@ -2708,10 +2715,11 @@ export class Tools {
     if (item.kind === 'scope') return item.control ? 'pointer' : 'grab';
     if (this.jumperAt(item)) return 'pointer';
     const kind = item.kind === 'part' ? this.fit.partDef(item.id)?.kind : undefined;
-    const live = this.sim.result.live;
-    if (live && kind === 'button' && this.onButtonCap(item.id)) return 'pointer';
-    if (live && kind === 'slide' && this.onSlideLever(item.id)) return 'pointer';
-    if (live && (kind === 'dipswitch' || kind === 'pot')) return 'pointer';
+    if (kind === 'button' && this.onButtonCap(item.id)) return 'pointer';
+    if (kind === 'slide' && this.onSlideLever(item.id)) return 'pointer';
+    if (kind === 'pot' && this.onPotKnob(item.id)) return 'pointer';
+    if (kind === 'dipswitch' && item.point && this.switchAt(item.id, item.point).distance < DIP_SLOT_REACH)
+      return 'pointer';
     // A board only moves once it's selected; until then a drag on it moves the view.
     const doc = this.store.doc;
     if (item.kind === 'board' && this.selection?.id !== item.id && this.selection?.id !== unitOf(doc, item.id))

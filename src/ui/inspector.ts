@@ -594,7 +594,7 @@ export class Inspector {
         );
         return '';
       case 'button': {
-        if (part && live) {
+        if (part) {
           const held = checkbox(sim.isHeld(part.id), 'Held down', (on) =>
             on ? sim.hold(part.id) : sim.unhold(part.id),
           );
