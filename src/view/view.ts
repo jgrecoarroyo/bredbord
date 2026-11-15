@@ -12,6 +12,9 @@ import { setMaxAnisotropy } from './textures';
 const ANGLED = new THREE.Vector3(0, 0.82, 0.57).normalize();
 const TOP_DOWN = new THREE.Vector3(0, 1, 0.002).normalize();
 
+/** How much of the uncovered canvas a fitted box may span, across and up: a margin of 6% on each side. */
+const FIT_FILL = 0.88;
+
 /**
  * Looking down, the view loses its perspective: flat from this close to straight down (the cosine of
  * the tilt from vertical, here 4°), with full perspective back by FLAT_FROM (18°), so tilting out of
@@ -406,15 +409,45 @@ export class View {
     this.invalidateShadows();
   }
 
+  /**
+   * Frames `box` in the part of the canvas no panel or dock covers, as close as it fits: each of its
+   * corners, seen from where the camera will be, within FIT_FILL of the edges.
+   */
   fit(box: THREE.Box3, animate = true): void {
     if (box.isEmpty()) return;
-    const sphere = box.getBoundingSphere(new THREE.Sphere());
+    const top = this.isTopView();
+    const dir = top ? TOP_DOWN : ANGLED;
     const { aspect, visible } = this.visibleArea();
-    // The field of view of the part of the canvas no panel or dock covers.
-    const fov = 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2) * visible);
-    const fitFov = aspect < 1 ? 2 * Math.atan(Math.tan(fov / 2) * aspect) : fov;
-    const distance = (sphere.radius / Math.sin(fitFov / 2)) * 0.9;
-    this.lookFrom(sphere.center, this.isTopView() ? TOP_DOWN : ANGLED, distance, animate);
+    // How far off the line of sight a point may be, per mm away from the camera: up and across.
+    const up = Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2) * visible * FIT_FILL;
+    const across = up * aspect;
+    const right = new THREE.Vector3(0, 1, 0).cross(dir).normalize();
+    const upward = dir.clone().cross(right).normalize();
+    const corners = [0, 1, 2, 3, 4, 5, 6, 7].map(
+      (i) =>
+        new THREE.Vector3(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z),
+    );
+    const center = box.getCenter(new THREE.Vector3());
+    // Each corner as (across, up, toward the camera) from the centre. The top view is flat: there,
+    // nearer doesn't look bigger.
+    const local = (): [number, number, number][] =>
+      corners.map((p) => {
+        const q = p.clone().sub(center);
+        return [q.dot(right), q.dot(upward), top ? 0 : q.dot(dir)];
+      });
+    // The nearest the camera can be with every corner in view, looking at the centre.
+    const nearest = (): number =>
+      Math.max(...local().map(([x, y, z]) => z + Math.max(Math.abs(x) / across, Math.abs(y) / up)));
+    let distance = nearest();
+    // In perspective the near side looks bigger than the far one, so what's in view isn't centred on
+    // the box's centre: move the centre to the middle of it, and come closer, a few times over.
+    for (let i = 0; i < 3; i++) {
+      const seen = local().map(([x, y, z]) => [x / (distance - z), y / (distance - z)]);
+      const mid = (k: 0 | 1): number => (Math.min(...seen.map((s) => s[k])) + Math.max(...seen.map((s) => s[k]))) / 2;
+      center.addScaledVector(right, mid(0) * distance).addScaledVector(upward, mid(1) * distance);
+      distance = nearest();
+    }
+    this.lookFrom(center, dir, distance, animate);
   }
 
   /**
