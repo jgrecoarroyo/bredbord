@@ -997,7 +997,7 @@ export class Inspector {
     card.live(() => {
       const at = store.doc.parts.find((p) => p.id === id)?.state ?? 500;
       if (document.activeElement !== slider) slider.value = String(at);
-      setText(percent, `${Math.round(at / 10)}00a0%`);
+      setText(percent, `${Math.round(at / 10)} %`);
     });
   }
 
