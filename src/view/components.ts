@@ -738,9 +738,13 @@ const pushKnobRise = (state: number): number => ((state & 1) === 1 ? 1 : 2.2);
 /** Whether `ray` meets a push switch's plunger, with its legs at `pins`. */
 export function pushKnobAt(pins: readonly V[], ray: THREE.Ray, state: number): boolean {
   const c = centroid(pins);
-  const top = new THREE.Plane(new THREE.Vector3(0, 1, 0), -(H + PUSH_TOP + pushKnobRise(state)));
-  const at = ray.intersectPlane(top, new THREE.Vector3());
-  return !!at && Math.abs(at.x - c.x) < PUSH_KNOB / 2 + 0.6 && Math.abs(at.z - c.z) < PUSH_KNOB / 2 + 0.6;
+  // The whole plunger, sides and all, from where it comes out of the body to its top, with a little slack.
+  const r = PUSH_KNOB / 2 + 0.6;
+  const box = new THREE.Box3(
+    new THREE.Vector3(c.x - r, H + PUSH_TOP, c.z - r),
+    new THREE.Vector3(c.x + r, H + PUSH_TOP + pushKnobRise(state), c.z + r),
+  );
+  return ray.intersectsBox(box);
 }
 
 function pushSwitchPieces(pins: readonly V[], state: number): Piece[] {
