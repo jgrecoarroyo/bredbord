@@ -616,10 +616,12 @@ function capacitorPieces(def: CapacitorDef, pins: readonly V[], farads: number):
 // A breadboard trimmer: three legs in a row, a square body and a knob on top that turns through 270°.
 
 const POT_BODY = 9.6;
+/** Its body along the row of legs: narrower than it is deep. */
+const POT_WIDTH = 7.4;
 const POT_KNOB_TOP = 8.6;
 const potBody = new THREE.MeshStandardMaterial({ color: 0x2457c5, roughness: 0.5 });
-const knobMaterial = new THREE.MeshStandardMaterial({ color: 0x2b2d31, roughness: 0.55 });
-const pointerMaterial = new THREE.MeshStandardMaterial({ color: 0xf4f4f2, roughness: 0.4 });
+const knobMaterial = new THREE.MeshStandardMaterial({ color: 0xf1efea, roughness: 0.5 });
+const pointerMaterial = new THREE.MeshStandardMaterial({ color: 0x1c1b19, roughness: 0.5 });
 /** The metal plate on top of a switch or button: a warm grey, so it doesn't melt into the board's white. */
 const plateMaterial = new THREE.MeshStandardMaterial({ color: 0x8e8a82, metalness: 0.5, roughness: 0.45 });
 /** A slide switch's lever: black, so you can see which way it's thrown against the plate. */
@@ -652,7 +654,7 @@ function potPieces(pins: readonly V[], position: number): Piece[] {
     {
       key: 'pot-body',
       geometry: cached('pot-body', () =>
-        new RoundedBoxGeometry(POT_BODY, 3.6, POT_BODY, 2, 0.6).translate(0, 0.4 + 1.8, 0),
+        new RoundedBoxGeometry(POT_WIDTH, 3.6, POT_BODY, 2, 0.6).translate(0, 0.4 + 1.8, 0),
       ),
       material: potBody,
       matrix,
