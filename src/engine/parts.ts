@@ -124,6 +124,14 @@ export interface SlideDef extends PartBase {
   readonly kind: 'slide';
 }
 
+/**
+ * A latching DPDT push switch (8 × 8 mm, push on, push off) across the channel, pinned like a 6-pin DIP.
+ * Pins 3 and 6 are the commons: out (state 0) they join 1 and 4, pushed in (state 1) 2 and 5.
+ */
+export interface PushSwitchDef extends PartBase {
+  readonly kind: 'pushswitch';
+}
+
 /** A 0.56" seven-segment digit straddling the channel, pinned like a 5161AS. */
 export interface DisplayDef extends PartBase {
   readonly kind: 'display';
@@ -201,6 +209,7 @@ export type PartDef =
   | DiodeDef
   | PotDef
   | SlideDef
+  | PushSwitchDef
   | TransistorDef
   | DisplayDef
   | NanoDef
@@ -784,6 +793,7 @@ export const PART_LIST: readonly PartDef[] = [
   { kind: 'power', id: 'power', title: 'Power module', subtitle: '5 V or 3.3 V per side' },
   { kind: 'button', id: 'button', title: 'Push button', subtitle: '6 mm tactile switch' },
   { kind: 'slide', id: 'slide-switch', title: 'Slide switch', subtitle: 'SPDT' },
+  { kind: 'pushswitch', id: 'push-switch', title: 'Push switch', subtitle: 'DPDT, push on, push off' },
   { kind: 'dipswitch', id: 'dip-switch-4', title: 'DIP switch', subtitle: '4 positions', positions: 4 },
   { kind: 'dipswitch', id: 'dip-switch-8', title: 'DIP switch', subtitle: '8 positions', positions: 8 },
   ...(['cathode', 'anode'] as const).flatMap((common) =>
@@ -867,6 +877,8 @@ export function pinCount(def: PartDef): number {
     case 'button':
     case 'power':
       return 4;
+    case 'pushswitch':
+      return 6;
     case 'display':
       return 10;
     default:
@@ -878,6 +890,7 @@ export function pinCount(def: PartDef): number {
 export function dipFootprint(def: PartDef): { pins: number; wide: boolean } | null {
   if (def.kind === 'dip') return def;
   if (def.kind === 'dipswitch') return { pins: def.positions * 2, wide: false };
+  if (def.kind === 'pushswitch') return { pins: 6, wide: false };
   if (def.kind === 'display') return { pins: 10, wide: true };
   if (def.kind === 'bargraph') return { pins: def.segments * 2, wide: false };
   if (def.kind === 'nano') return { pins: def.pins, wide: true };

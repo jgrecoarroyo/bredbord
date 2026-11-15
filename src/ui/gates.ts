@@ -175,6 +175,26 @@ export function slideLayout(position: 0 | 1): BlockLayout {
   };
 }
 
+/**
+ * A latching DPDT push switch, pinned like a 6-pin DIP: 1–3 down the left, 4–6 up the right. Pin 3's
+ * blade rests on 1 and pin 6's on 4 with the switch out (`position` 0), on 2 and 5 pushed in.
+ */
+export function pushSwitchLayout(position: 0 | 1): BlockLayout {
+  return {
+    leads: 'M0 12.5H20M0 34.5H20M0 56.5H38V49M93 34.5H73M93 56.5H73M93 12.5H55V20',
+    bodies: [],
+    marks: position ? 'M36.6 45.6L23.6 36.6M56.4 23.4L69.4 32.4' : 'M37.2 45.2L23 15M55.8 23.8L70 54',
+    bubbles: [
+      [22, 12.5],
+      [22, 34.5],
+      [38, 47],
+      [71, 34.5],
+      [71, 56.5],
+      [55, 22],
+    ],
+  };
+}
+
 /** An LED bar graph: each bar an LED from its + leg on the left straight across to its − leg on the right. */
 export function barGraphLayout(segments: number): BlockLayout {
   let leads = '';

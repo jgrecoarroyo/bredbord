@@ -26,6 +26,7 @@ export function refPrefix(def: PartDef): string {
       return 'RV';
     case 'button':
     case 'slide':
+    case 'pushswitch':
     case 'dipswitch':
       return 'S';
     case 'display':

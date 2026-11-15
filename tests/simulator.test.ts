@@ -769,6 +769,30 @@ describe('More parts', () => {
   });
 });
 
+describe('push switch', () => {
+  it('joins 3 to 1 and 6 to 4 when out, 3 to 2 and 6 to 5 when pushed in', () => {
+    const levels = (state: number): number[] => {
+      const b = new Bench();
+      // Pin 1 in column 11: 1–3 along row f, 4–6 back along row e.
+      const pins = dipPinHoles(dipFootprint(PARTS['push-switch'])!, 10, false).map((p) => `${p.row}${p.col + 1}`);
+      expect(pins).toEqual(['f11', 'f12', 'f13', 'e13', 'e12', 'e11']);
+      b.part('sw', 'push-switch', pins, { state });
+      b.toRail('j13', 'B+', 13).toRail('a11', 'T+', 11);
+      for (const [hole, r] of [
+        ['j11', 'B-'],
+        ['j12', 'B-'],
+        ['a13', 'T-'],
+        ['a12', 'T-'],
+      ] as const)
+        b.part(`r${hole}`, 'resistor', [hole, railNear(r, 20 + Number(hole.slice(1)) * 2)], { value: 10000 });
+      b.run();
+      return ['f11', 'f12', 'e13', 'e12'].map((x) => Math.round(b.v(x)));
+    };
+    expect(levels(0)).toEqual([5, 0, 5, 0]);
+    expect(levels(1)).toEqual([0, 5, 0, 5]);
+  });
+});
+
 describe('bar graphs and resistor networks', () => {
   it('lights a bar graph one bar at a time, each from its anode straight across to its cathode', () => {
     const b = new Bench();

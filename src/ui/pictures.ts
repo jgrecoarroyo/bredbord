@@ -106,6 +106,8 @@ export const PICTURES = {
     leg(32, 29, 42) +
     leg(39, 29, 42) +
     `<rect x="14" y="16" width="36" height="14" rx="2" fill="#2a2826"/><rect x="19" y="19" width="11" height="8" rx="1" fill="#efede8"/>`,
+  // A latching push switch from above: white body on a black base, its square blue plunger in the middle.
+  latch: `<rect x="18" y="10" width="28" height="28" rx="1.5" fill="#2a2826"/><rect x="20" y="12" width="24" height="24" rx="1" fill="#efede8"/><rect x="27" y="19" width="10" height="10" rx="1" fill="#2f6fd6"/>`,
   dip:
     `<rect x="10" y="12" width="44" height="24" rx="1.5" fill="#d33b30"/>` +
     many(

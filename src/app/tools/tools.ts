@@ -53,7 +53,7 @@ import {
 } from '../../engine/scope';
 import { SUPPLY_SIZE, SUPPLY_TERMINALS } from '../../engine/supply';
 import type { ScreenTag } from '../../ui/tags';
-import { buildPart, buttonCapAt, potKnobAt, powerJumperAt, slideLeverAt } from '../../view/components';
+import { buildPart, buttonCapAt, potKnobAt, powerJumperAt, pushKnobAt, slideLeverAt } from '../../view/components';
 import { owned, tube } from '../../view/geometry';
 import { Markers, MAX_PROBES, ProbePins, type MarkerTone } from '../../view/markers';
 import { ghostify } from '../../view/materials';
@@ -350,6 +350,18 @@ export class Tools {
   private onPotKnob(id: Id): boolean {
     const pins = this.fit.part(id)?.pins.map((r) => this.sync.holeWorld(r));
     return !!pins && pins.every((p) => !!p) && potKnobAt(pins as THREE.Vector3[], this.view.rayFrom(this.ndc));
+  }
+
+  /** Whether the pointer is on push switch `id`'s plunger, rather than its body. */
+  private onPushKnob(id: Id): boolean {
+    const part = this.fit.part(id);
+    const pins = part?.pins.map((r) => this.sync.holeWorld(r));
+    return (
+      !!part &&
+      !!pins &&
+      pins.every((p) => !!p) &&
+      pushKnobAt(pins as THREE.Vector3[], this.view.rayFrom(this.ndc), part.state ?? 0)
+    );
   }
 
   /** Whether the pointer is on slide switch `id`'s lever, rather than its body. */
@@ -1020,7 +1032,12 @@ export class Tools {
     const a = this.sync.holeWorld(part.pins[0]);
     const b = this.sync.holeWorld(part.pins[part.pins.length - 1]);
     const flipped = !!a && !!b && (dipFootprint(def) ? a.z < b.z : a.x > b.x);
-    const keepsState = def.kind === 'pot' || def.kind === 'slide' || def.kind === 'dipswitch' || def.kind === 'nano';
+    const keepsState =
+      def.kind === 'pot' ||
+      def.kind === 'slide' ||
+      def.kind === 'pushswitch' ||
+      def.kind === 'dipswitch' ||
+      def.kind === 'nano';
     this.groupClip = null;
     this.clip = { def, value: part.value, state: keepsState ? part.state : undefined, flipped };
     return true;
@@ -2110,6 +2127,10 @@ export class Tools {
       this.sim.setPowerJumper(item.id, jumper.side, to);
       return;
     }
+    if (item && def?.kind === 'pushswitch' && this.onPushKnob(item.id)) {
+      this.sim.toggleSwitch(item.id, 0);
+      return;
+    }
     if (item && def?.kind === 'slide' && this.onSlideLever(item.id)) {
       this.sim.toggleSwitch(item.id, 0);
       return;
@@ -2717,6 +2738,7 @@ export class Tools {
     const kind = item.kind === 'part' ? this.fit.partDef(item.id)?.kind : undefined;
     if (kind === 'button' && this.onButtonCap(item.id)) return 'pointer';
     if (kind === 'slide' && this.onSlideLever(item.id)) return 'pointer';
+    if (kind === 'pushswitch' && this.onPushKnob(item.id)) return 'pointer';
     if (kind === 'pot' && this.onPotKnob(item.id)) return 'pointer';
     if (kind === 'dipswitch' && item.point && this.switchAt(item.id, item.point).distance < DIP_SLOT_REACH)
       return 'pointer';

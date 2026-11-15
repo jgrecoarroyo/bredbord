@@ -202,6 +202,14 @@ export class Library {
 
     this.part('button', 'Push button', 'Press to close', 'Switches and displays', 'push', 'tactile momentary');
     this.part('slide-switch', 'Slide switch', 'On or off', 'Switches and displays', 'slide', 'toggle spdt');
+    this.part(
+      'push-switch',
+      'Push switch',
+      'Push on, push off',
+      'Switches and displays',
+      'latch',
+      'dpdt latching self-locking toggle',
+    );
     this.part('dip-switch-8', 'DIP switch', '4 or 8 switches', 'Switches and displays', 'dip', '');
     this.part('7seg-cc', '7-segment', 'One digit', 'Switches and displays', 'seg7', 'seven segment display');
     this.part('bargraph', 'LED bar graph', '10 segments', 'Switches and displays', 'bar', 'array');

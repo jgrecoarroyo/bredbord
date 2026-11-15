@@ -37,6 +37,7 @@ import {
   BUTTON_LAYOUT,
   gatesDrawing,
   POT_LAYOUT,
+  pushSwitchLayout,
   slideLayout,
   type BlockLayout,
 } from './gates';
@@ -624,6 +625,27 @@ export class Inspector {
         );
         card.fold('Pins', (into) =>
           into.append(pinList(['A', 'Common', 'B'], part, this.deps, card, true, slideLayout(position))),
+        );
+        return '';
+      }
+      case 'pushswitch': {
+        const position = ((part?.state ?? 0) & 1) as 0 | 1;
+        card.row(
+          'Position',
+          choice(
+            [
+              [0, 'Out'],
+              [1, 'In'],
+            ],
+            position,
+            () => part && sim.toggleSwitch(part.id, 0),
+            !part,
+          ),
+        );
+        card.fold('Pins', (into) =>
+          into.append(
+            pinList(['1', '2', 'Common', '4', '5', 'Common'], part, this.deps, card, false, pushSwitchLayout(position)),
+          ),
         );
         return '';
       }

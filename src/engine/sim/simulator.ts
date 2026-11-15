@@ -91,6 +91,12 @@ function addPassive(
     case 'slide':
       net.addBranch(nets[1], (part.state ?? 0) & 1 ? nets[2] : nets[0], G_CONTACT);
       return true;
+    case 'pushswitch': {
+      const pushed = ((part.state ?? 0) & 1) === 1;
+      net.addBranch(nets[2], pushed ? nets[1] : nets[0], G_CONTACT);
+      net.addBranch(nets[5], pushed ? nets[4] : nets[3], G_CONTACT);
+      return true;
+    }
     case 'button':
       net.addBranch(nets[0], nets[1], G_CONTACT);
       net.addBranch(nets[2], nets[3], G_CONTACT);

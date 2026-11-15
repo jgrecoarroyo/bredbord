@@ -725,6 +725,77 @@ function potPieces(pins: readonly V[], position: number): Piece[] {
   ];
 }
 
+// ---- push switch (latching DPDT) ----
+
+const PUSH_BODY = 6.8;
+const PUSH_TOP = 5.4;
+const PUSH_KNOB = 2.6;
+const pushBodyMaterial = new THREE.MeshStandardMaterial({ color: 0xefede8, roughness: 0.55 });
+const pushKnobMaterial = new THREE.MeshStandardMaterial({ color: 0x2f6fd6, roughness: 0.45 });
+/** How far its plunger stands above its body: out, or pushed in and latched. */
+const pushKnobRise = (state: number): number => ((state & 1) === 1 ? 1 : 2.2);
+
+/** Whether `ray` meets a push switch's plunger, with its legs at `pins`. */
+export function pushKnobAt(pins: readonly V[], ray: THREE.Ray, state: number): boolean {
+  const c = centroid(pins);
+  const top = new THREE.Plane(new THREE.Vector3(0, 1, 0), -(H + PUSH_TOP + pushKnobRise(state)));
+  const at = ray.intersectPlane(top, new THREE.Vector3());
+  return !!at && Math.abs(at.x - c.x) < PUSH_KNOB / 2 + 0.6 && Math.abs(at.z - c.z) < PUSH_KNOB / 2 + 0.6;
+}
+
+function pushSwitchPieces(pins: readonly V[], state: number): Piece[] {
+  const matrix = placement(pins[0], pins[2], centroid(pins));
+  const rise = pushKnobRise(state);
+  return [
+    {
+      key: 'push-legs',
+      geometry: cached('push-legs', () =>
+        mergeGeometries(
+          [-PITCH, 0, PITCH].flatMap((x) =>
+            [-1.5 * PITCH, 1.5 * PITCH].map((z) =>
+              new THREE.BoxGeometry(0.5, HOLE_DEPTH + 0.6, 0.3).translate(x, (0.6 - HOLE_DEPTH) / 2, z),
+            ),
+          ),
+        )!,
+      ),
+      material: tinMaterial,
+      matrix,
+    },
+    {
+      key: 'push-base',
+      geometry: cached('push-base', () =>
+        new RoundedBoxGeometry(PUSH_BODY, 1.4, PUSH_BODY + 0.4, 2, 0.2).translate(0, 0.4 + 0.7, 0),
+      ),
+      material: leverMaterial,
+      matrix,
+    },
+    {
+      key: 'push-body',
+      geometry: cached('push-body', () =>
+        new RoundedBoxGeometry(PUSH_BODY, PUSH_TOP - 1.8, PUSH_BODY, 2, 0.35).translate(
+          0,
+          1.8 + (PUSH_TOP - 1.8) / 2,
+          0,
+        ),
+      ),
+      material: pushBodyMaterial,
+      matrix,
+    },
+    {
+      key: `push-knob-${rise}`,
+      geometry: cached(`push-knob-${rise}`, () =>
+        new RoundedBoxGeometry(PUSH_KNOB, rise + 0.5, PUSH_KNOB, 2, 0.3).translate(
+          0,
+          PUSH_TOP - 0.5 + (rise + 0.5) / 2,
+          0,
+        ),
+      ),
+      material: pushKnobMaterial,
+      matrix,
+    },
+  ];
+}
+
 // ---- slide switch (SPDT) ----
 
 const SLIDE_TOP = 3.8;
@@ -1682,6 +1753,8 @@ export function partPieces(def: PartDef, pins: readonly V[], options: PartOption
       return potPieces(pins, options.state ?? 500);
     case 'slide':
       return slidePieces(pins, options.state ?? 0);
+    case 'pushswitch':
+      return pushSwitchPieces(pins, options.state ?? 0);
     case 'transistor':
       return transistorPieces(def, pins);
     case 'display':
@@ -1849,6 +1922,11 @@ export function partObstacles(def: PartDef, pins: readonly V[], options: PartOpt
     case 'slide': {
       const c = pins[1];
       return [boxObstacle(c.x - 4.4, c.x + 4.4, c.z - 1.9, c.z + 1.9, H + SLIDE_TOP + 2.7)];
+    }
+    case 'pushswitch': {
+      const c = centroid(pins);
+      const r = PUSH_BODY / 2 + 0.2;
+      return [boxObstacle(c.x - r, c.x + r, c.z - r, c.z + r, H + PUSH_TOP + 2.4)];
     }
     case 'transistor': {
       const c = pins[1];
