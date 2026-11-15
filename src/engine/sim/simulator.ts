@@ -6,7 +6,7 @@
 import type { CircuitDoc, HoleRef, Id, PartDoc, SupplyDoc } from '../circuit';
 import type { Connectivity } from '../netlist';
 import { SHUNT_A, SHUNT_MA } from '../meter';
-import { LED_VF, PARTS, powerSideVolts, SEGMENT_PINS, type PartDef, type TransistorDef } from '../parts';
+import { buttonPairs, LED_VF, PARTS, powerSideVolts, SEGMENT_PINS, type PartDef, type TransistorDef } from '../parts';
 import { decodeBytes, encodeBytes } from '../roms';
 import type { Cpu65 } from './cpu65';
 import {
@@ -97,11 +97,13 @@ function addPassive(
       net.addBranch(nets[4], pushed ? nets[3] : nets[5], G_CONTACT);
       return true;
     }
-    case 'button':
-      net.addBranch(nets[0], nets[1], G_CONTACT);
-      net.addBranch(nets[2], nets[3], G_CONTACT);
-      if (pressed.has(part.id)) net.addBranch(nets[0], nets[2], G_CONTACT);
+    case 'button': {
+      const [[a, b], [c, d]] = buttonPairs(part.pins);
+      net.addBranch(nets[a], nets[b], G_CONTACT);
+      net.addBranch(nets[c], nets[d], G_CONTACT);
+      if (pressed.has(part.id)) net.addBranch(nets[a], nets[c], G_CONTACT);
       return true;
+    }
     case 'dipswitch':
       for (let s = 0; s < def.positions; s++) {
         if (((part.state ?? 0) >> s) & 1) net.addBranch(nets[s], nets[2 * def.positions - 1 - s], G_CONTACT);

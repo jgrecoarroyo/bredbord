@@ -113,6 +113,8 @@ function symbol(kind: GateLayout['gate'], y: number, schmitt: boolean): { body: 
  * same frame as `gatesDrawing`, so pin rows sit at `FIRST + ROW × row` down each side, 0 to `GATES_WIDTH` across.
  */
 export interface BlockLayout {
+  /** False for a part with no notch to show where pin 1 is (a chip's): a push button or push switch. */
+  notch?: boolean;
   /** Wires from the pins. */
   leads: string;
   /** Outlines, drawn like a gate's body. */
@@ -136,6 +138,7 @@ export interface BlockLayout {
  * pairs, its plunger on top. Pins run down the left (1, 2) and up the right (3, 4), as in the list.
  */
 export const BUTTON_LAYOUT: BlockLayout = {
+  notch: false,
   leads: 'M0 12.5H22V34.5H0M22 23.5H34M93 12.5H71V34.5H93M71 23.5H59',
   bodies: [],
   marks: 'M35.8 22.6L56 13M45.5 17.6V12.5M41 12.5H50',
@@ -181,6 +184,7 @@ export function slideLayout(position: 0 | 1): BlockLayout {
  */
 export function pushSwitchLayout(position: 0 | 1): BlockLayout {
   return {
+    notch: false,
     leads: 'M0 12.5H20M0 34.5H36M0 56.5H20M93 12.5H73M93 34.5H57M93 56.5H73',
     bodies: [],
     marks: position ? 'M36.8 36.1L23.5 54.5M56.2 36.1L69.5 54.5' : 'M36.8 32.9L23.5 14.5M56.2 32.9L69.5 14.5',

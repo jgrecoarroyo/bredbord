@@ -78,9 +78,31 @@ export function powerText(state: number | undefined): string {
     : `Top ${top === 'Off' ? 'off' : top}, bottom ${bottom === 'Off' ? 'off' : bottom}`;
 }
 
-/** A 4-leg 6 mm tactile switch. Legs 1–2 and 3–4 are always joined; pressing joins the two pairs. */
+/**
+ * A 4-leg 6 mm tactile switch. Two pairs of legs are always joined inside, and pressing joins the pairs:
+ * see `buttonPairs`.
+ */
 export interface ButtonDef extends PartBase {
   readonly kind: 'button';
+}
+
+/**
+ * A button's two pairs of legs that are always joined, by index. As on a real 6 mm switch across the
+ * channel, the legs facing each other over it (in the same column) are the joined ones, so pressing joins
+ * one column to the other, the two legs on the same side, however its legs are listed. Legs not in a
+ * column together (off the terminal rows) pair 1–2 and 3–4.
+ */
+export function buttonPairs(pins: readonly { hole: string }[]): readonly [[number, number], [number, number]] {
+  const col = (i: number): string | undefined => /^[a-j](\d+)$/.exec(pins[i]?.hole ?? '')?.[1];
+  if (col(0) && col(0) === col(2) && col(0) !== col(1))
+    return [
+      [0, 2],
+      [1, 3],
+    ];
+  return [
+    [0, 1],
+    [2, 3],
+  ];
 }
 
 /** A DIP switch: switch k joins pin k to the pin across from it. */

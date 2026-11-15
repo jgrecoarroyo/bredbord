@@ -12,6 +12,7 @@ import {
   formatOhms,
   NETWORK_VALUES,
   PARTS,
+  buttonPairs,
   POT_VALUES,
   POWER_JUMPERS,
   powerJumper,
@@ -603,9 +604,18 @@ export class Inspector {
           card.live(() => held.setAttribute('aria-checked', String(sim.isHeld(part.id))));
           card.body.append(held);
         }
-        // Legs 1 and 2 are joined inside, and 3 and 4; pressing joins the pairs.
+        // Each pair of legs is joined inside (the two facing each other over the channel); pressing joins
+        // the pairs. Drawn as on the board, whichever order its legs are listed in: the left pair down the
+        // left, top then bottom, and the right pair up the right (pin 3 bottom right, 4 top right).
+        const [[a, b], [c, d]] = part
+          ? buttonPairs(part.pins)
+          : [
+              [0, 1],
+              [2, 3],
+            ];
+        const shown = part ? { ...part, pins: [a, b, d, c].map((i) => part.pins[i]) } : null;
         card.fold('Pins', (into) =>
-          into.append(pinList(['A', 'A', 'B', 'B'], part, this.deps, card, false, BUTTON_LAYOUT)),
+          into.append(pinList(['A', 'A', 'B', 'B'], shown, this.deps, card, false, BUTTON_LAYOUT)),
         );
         return '';
       }
@@ -1099,7 +1109,7 @@ function pinList(
   body.style.gridRow = `1 / span ${inLine ? n : half}`;
   // Logic chips show their gates (or blocks, for a mux or a register) inside the outline, wired to their pins.
   if (gates) body.append('gates' in gates ? gatesDrawing(gates, n) : blockDrawing(gates, inLine ? n : half));
-  if (!inLine) body.append(el('span', 'notch'));
+  if (!inLine && !(gates && 'notch' in gates && gates.notch === false)) body.append(el('span', 'notch'));
   list.classList.toggle('on-desk', !!part);
   list.append(body);
   const marks: (HTMLElement | null)[] = [];

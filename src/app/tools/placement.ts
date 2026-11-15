@@ -47,7 +47,6 @@ export const straddles = (def: PartDef | null | undefined): boolean =>
 /** Parts the R key flips end for end rather than turns. */
 export const flips = (def: PartDef): boolean =>
   !!dipFootprint(def) ||
-  def.kind === 'button' ||
   def.kind === 'pot' ||
   def.kind === 'slide' ||
   def.kind === 'transistor' ||
@@ -97,9 +96,8 @@ export function placementFor(fit: Fit, def: PartDef, hit: HoleHit, o: Orientatio
         const c = Math.max(0, Math.min(spec.columns - 3, h.hole.col)) + 1;
         const [e1, e2, f1, f2] = [`e${c}`, `e${c + 2}`, `f${c}`, `f${c + 2}`].map((n) => spec.hole(n)!);
         // Like a real 6 mm switch across the channel: the legs facing each other over it are always
-        // joined, so pressing joins column to column. Turned, the pairs run along the board instead
-        // and pressing joins the top half of the board to the bottom half.
-        holes = o.flipped ? [e1, e2, f1, f2] : [e1, f1, e2, f2];
+        // joined, so pressing joins column to column (see `buttonPairs`). It only goes in this one way.
+        holes = [e1, f1, e2, f2];
         break;
       }
       case 'power':

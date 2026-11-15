@@ -769,6 +769,24 @@ describe('More parts', () => {
   });
 });
 
+describe('push button', () => {
+  it('joins its left column to its right when pressed, the legs across the channel always joined', () => {
+    for (const pins of [
+      ['e11', 'f11', 'e13', 'f13'],
+      ['e11', 'e13', 'f11', 'f13'],
+    ]) {
+      const b = new Bench().part('btn', 'button', pins);
+      // Ground on the bottom left, a pull-up on the bottom right: the same side of the channel.
+      b.toRail('j11', 'B-', 11);
+      b.part('pu', 'resistor', ['j13', railNear('B+', 16)], { value: 10000 });
+      b.run();
+      expect(Math.round(b.v('h13'))).toBe(5);
+      b.run(['btn']);
+      expect(Math.round(b.v('h13'))).toBe(0);
+    }
+  });
+});
+
 describe('push switch', () => {
   it('joins 2 to 1 and 5 to 6 when out, 2 to 3 and 5 to 4 when pushed in', () => {
     const levels = (state: number): number[] => {

@@ -92,7 +92,7 @@ export function clockDoc(): CircuitDoc {
   part('led-yellow', ['g9', 'g11'], { value: 5 });
   toRail('resistor', 'j11', 'B-', 11, 220);
 
-  // Monostable (U2, 21–24): the button fires one clean pulse.
+  // Monostable (U2, 21–24): the button fires one clean pulse, joining its bottom left (ground) to its bottom right (TRIG).
   const button = part('button', ['e16', 'e18', 'f16', 'f18']);
   toRail('resistor', 'j18', 'B+', 18, 1000); // R3, TRIG pull-up
   toRail('resistor', 'a22', 'T+', 22, 1_000_000); // R4
@@ -130,7 +130,7 @@ export function clockDoc(): CircuitDoc {
   for (const col of [10, 24]) need(bottom(col), rail('B+'), 'red'); // 555 RESET high
   need(top(35), rail('T-'), 'black'); // U3 THR
   need(top(44), rail('T-'), 'black'); // HLT low: run
-  need(top(16), rail('T-'), 'black'); // button to ground
+  need(bottom(16), rail('B-'), 'black'); // button to ground, on the same side as TRIG
   need(top(28), rail('T-'), 'black'); // slide common
   // U1 timing: knob, THR and TRIG.
   need(top(4), top(9), 'white');

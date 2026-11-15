@@ -63,13 +63,13 @@ export function exampleDoc(): CircuitDoc {
   c.part('74LS00', dip(14, 24));
   c.wire('a24', c.rail('T+', 24), 'red');
   c.wire('j30', c.rail('B-', 30), 'black');
-  // Two buttons across the channel: top side to ground, bottom side to inputs 1A and 1B.
+  // Two buttons across the channel, each joining its left column (to ground) to its right (to inputs 1A and 1B).
   c.part('button', ['e15', 'e17', 'f15', 'f17']);
   c.wire('a15', c.rail('T-', 15), 'black');
-  c.wire('h15', 'h24', 'yellow');
+  c.wire('h17', 'h24', 'yellow');
   c.part('button', ['e19', 'e21', 'f19', 'f21']);
   c.wire('a19', c.rail('T-', 19), 'black');
-  c.wire('i19', 'i25', 'green');
+  c.wire('i21', 'i25', 'green');
   // Output 1Y to a red LED, through a 220 Ω resistor to ground.
   c.wire('h26', 'h40', 'blue');
   c.part('led-red', ['j40', 'j41']);
@@ -165,11 +165,11 @@ export function registerDoc(): CircuitDoc {
   [6, 7, 8, 9].forEach((col, k) => c.wire(`h${col}`, `b${24 + k}`, (['yellow', 'green', 'blue', 'white'] as const)[k]));
   // 1Q–4Q to 3 mm LEDs, legs bent into the ground rail below.
   for (const col of [24, 25, 26, 27]) c.part('led-red', [`i${col}`, c.rail('B-', col)], { value: 3 });
-  // The clock button: pressing it joins + (top) to CLK (bottom), which a 1 kΩ holds low otherwise.
+  // The clock button: pressing it joins + (its left column) to CLK (its right), which a 1 kΩ holds low otherwise.
   c.part('button', ['e44', 'e46', 'f44', 'f46']);
   c.wire('a44', c.rail('T+', 44), 'red');
-  c.part('resistor', ['j44', c.rail('B-', 44)], { value: 1000 });
-  c.wire('h44', 'h28', 'orange');
+  c.part('resistor', ['j46', c.rail('B-', 46)], { value: 1000 });
+  c.wire('h46', 'h28', 'orange');
   return c.doc;
 }
 

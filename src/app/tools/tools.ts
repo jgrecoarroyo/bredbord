@@ -3070,7 +3070,7 @@ export class Tools {
       case 'place': {
         const def = this.placing;
         if (!def) return [esc('Done')];
-        const turns = def.kind !== 'power' && def.kind !== 'resistor' && def.kind !== 'diode';
+        const turns = def.kind !== 'power' && def.kind !== 'resistor' && def.kind !== 'diode' && def.kind !== 'button';
         return turns ? [['R', dipFootprint(def) ? 'Flip' : 'Turn'], esc('Cancel')] : [esc('Cancel')];
       }
     }
