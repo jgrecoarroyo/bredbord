@@ -2,5 +2,11 @@
   "redirects": [
     { "source": "/home", "destination": "/", "permanent": true },
     { "source": "/app", "destination": "/app/", "permanent": true }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "**": false,
+      "main": true
+    }
+  }
 }
