@@ -1031,9 +1031,10 @@ select[data-dd] {
   flex: none;
   width: 24px;
   color: var(--ink-2);
+  white-space: nowrap;
 }
 .unit.w {
-  width: 40px;
+  width: 46px;
   text-align: right;
 }
 .wbtn {

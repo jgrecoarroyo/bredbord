@@ -327,17 +327,10 @@ export class Inspector {
         case 'wire': {
           const w = doc.wires.find((x) => x.id === sel.id)!;
           this.header('Wire', wireRef(doc, w.id), { rotate: false, del: true });
-          const sw = el('div', 'wsw');
-          WIRE_COLORS.forEach((c, i) => {
-            const b = el('button', c === w.color ? 'on' : '');
-            b.style.background = WIRE_CSS[c];
-            b.dataset.tip = capitalise(c);
-            b.dataset.key = String(i + 1);
-            b.setAttribute('aria-label', capitalise(c));
-            b.addEventListener('click', () => t.setWireColor(c));
-            sw.append(b);
-          });
-          card.row('Colour', sw);
+          card.row(
+            'Colour',
+            swatches(WIRE_COLORS, w.color, (c) => t.setWireColor(c), true),
+          );
           break;
         }
         case 'part': {
@@ -504,15 +497,10 @@ export class Inspector {
       case 'led': {
         card.row(
           'Colour',
-          select(
-            LED_COLORS.map((c) => [c, capitalise(c)] as const),
-            def.color,
-            (c) => {
-              this.onLedColor(c);
-              t.setLedColor(c);
-            },
-            'Colour',
-          ),
+          swatches(LED_COLORS, def.color, (c) => {
+            this.onLedColor(c);
+            t.setLedColor(c);
+          }),
         );
         card.row(
           'Size',
@@ -704,12 +692,7 @@ export class Inspector {
         );
         card.row(
           'Colour',
-          select(
-            LED_COLORS.map((c) => [c, capitalise(c)] as const),
-            def.color,
-            (c) => t.setDef(displayId(def.common, c)),
-            'Colour',
-          ),
+          swatches(LED_COLORS, def.color, (c) => t.setDef(displayId(def.common, c))),
         );
         card.fold('Pins', (into) => into.append(this.segmentLegend(def.common, part?.id ?? null)));
         return '';
@@ -1081,6 +1064,26 @@ export class Inspector {
       });
     return grid;
   }
+}
+
+/** A row of colour squares, as in the wire card. `keys`: show 1, 2, 3… in the tooltips. */
+function swatches<C extends keyof typeof WIRE_CSS>(
+  colors: readonly C[],
+  current: C,
+  pick: (c: C) => void,
+  keys = false,
+): HTMLElement {
+  const sw = el('div', 'wsw');
+  colors.forEach((c, i) => {
+    const b = el('button', c === current ? 'on' : '');
+    b.style.background = WIRE_CSS[c];
+    b.dataset.tip = capitalise(c);
+    if (keys) b.dataset.key = String(i + 1);
+    b.setAttribute('aria-label', capitalise(c));
+    b.addEventListener('click', () => pick(c));
+    sw.append(b);
+  });
+  return sw;
 }
 
 /** Whether a part turns or flips with R. */
