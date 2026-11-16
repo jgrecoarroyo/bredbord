@@ -1,0 +1,241 @@
+{
+  "version": 1,
+  "name": "Example: 555 clock",
+  "boards": [
+    {
+      "id": "b1",
+      "type": "bb830",
+      "x": 0,
+      "z": 0
+    }
+  ],
+  "wires": [
+    {
+      "id": "w4",
+      "a": {
+        "board": "b1",
+        "hole": "a20"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "T+15"
+      },
+      "color": "red"
+    },
+    {
+      "id": "w5",
+      "a": {
+        "board": "b1",
+        "hole": "j20"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "B-15"
+      },
+      "color": "black"
+    },
+    {
+      "id": "w6",
+      "a": {
+        "board": "b1",
+        "hole": "j23"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "B+19"
+      },
+      "color": "red"
+    },
+    {
+      "id": "w9",
+      "a": {
+        "board": "b1",
+        "hole": "d21"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "d26"
+      },
+      "color": "yellow"
+    },
+    {
+      "id": "w10",
+      "a": {
+        "board": "b1",
+        "hole": "e27"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "d22"
+      },
+      "color": "orange"
+    },
+    {
+      "id": "w11",
+      "a": {
+        "board": "b1",
+        "hole": "g21"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "c22"
+      },
+      "color": "green"
+    },
+    {
+      "id": "w14",
+      "a": {
+        "board": "b1",
+        "hole": "a24"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "T-20"
+      },
+      "color": "black"
+    }
+  ],
+  "parts": [
+    {
+      "id": "p2",
+      "def": "power",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "T+1"
+        },
+        {
+          "board": "b1",
+          "hole": "T-1"
+        },
+        {
+          "board": "b1",
+          "hole": "B+1"
+        },
+        {
+          "board": "b1",
+          "hole": "B-1"
+        }
+      ],
+      "state": 0
+    },
+    {
+      "id": "p3",
+      "def": "NE555",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "f20"
+        },
+        {
+          "board": "b1",
+          "hole": "f21"
+        },
+        {
+          "board": "b1",
+          "hole": "f22"
+        },
+        {
+          "board": "b1",
+          "hole": "f23"
+        },
+        {
+          "board": "b1",
+          "hole": "e23"
+        },
+        {
+          "board": "b1",
+          "hole": "e22"
+        },
+        {
+          "board": "b1",
+          "hole": "e21"
+        },
+        {
+          "board": "b1",
+          "hole": "e20"
+        }
+      ]
+    },
+    {
+      "id": "p7",
+      "def": "resistor",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "T+16"
+        },
+        {
+          "board": "b1",
+          "hole": "b21"
+        }
+      ],
+      "value": 1000
+    },
+    {
+      "id": "p8",
+      "def": "pot",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "a26"
+        },
+        {
+          "board": "b1",
+          "hole": "a27"
+        },
+        {
+          "board": "b1",
+          "hole": "a28"
+        }
+      ],
+      "value": 1000000,
+      "state": 500
+    },
+    {
+      "id": "p12",
+      "def": "cap-electrolytic",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "i21"
+        },
+        {
+          "board": "b1",
+          "hole": "i20"
+        }
+      ],
+      "value": 0.000001
+    },
+    {
+      "id": "p13",
+      "def": "cap-ceramic",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "c23"
+        },
+        {
+          "board": "b1",
+          "hole": "c24"
+        }
+      ],
+      "value": 1e-8
+    },
+    {
+      "id": "p15",
+      "def": "led-blue",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "j22"
+        },
+        {
+          "board": "b1",
+          "hole": "B-17"
+        }
+      ]
+    }
+  ],
+  "nextId": 16
+}

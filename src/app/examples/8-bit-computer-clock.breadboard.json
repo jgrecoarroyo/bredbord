@@ -1,0 +1,1179 @@
+{
+  "version": 1,
+  "boards": [
+    {
+      "id": "b1",
+      "type": "bb830",
+      "x": -43,
+      "z": -81.9
+    }
+  ],
+  "wires": [
+    {
+      "id": "w4",
+      "a": {
+        "board": "b1",
+        "hole": "T-1"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "B-1"
+      },
+      "color": "black",
+      "points": [
+        {
+          "x": -125,
+          "z": -103.7
+        },
+        {
+          "x": -124.9,
+          "z": -57.8
+        }
+      ]
+    },
+    {
+      "id": "w5",
+      "a": {
+        "board": "b1",
+        "hole": "T+1"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "B+1"
+      },
+      "color": "red",
+      "points": [
+        {
+          "x": -126.5,
+          "z": -106
+        },
+        {
+          "x": -126.6,
+          "z": -59.7
+        }
+      ]
+    },
+    {
+      "id": "w9",
+      "a": {
+        "board": "b1",
+        "hole": "j5"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "B-3"
+      },
+      "color": "black"
+    },
+    {
+      "id": "w10",
+      "a": {
+        "board": "b1",
+        "hole": "a5"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "T+3"
+      },
+      "color": "red"
+    },
+    {
+      "id": "w11",
+      "a": {
+        "board": "b1",
+        "hole": "d7"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "g6"
+      },
+      "color": "green",
+      "points": [
+        {
+          "x": -100.3,
+          "z": -88.3
+        },
+        {
+          "x": -100.4,
+          "z": -75.5
+        }
+      ]
+    },
+    {
+      "id": "w24",
+      "a": {
+        "board": "b1",
+        "hole": "j8"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "B+5"
+      },
+      "color": "red"
+    },
+    {
+      "id": "w26",
+      "a": {
+        "board": "b1",
+        "hole": "c2"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "c7"
+      },
+      "color": "green"
+    },
+    {
+      "id": "w28",
+      "a": {
+        "board": "b1",
+        "hole": "g15"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "g18"
+      },
+      "color": "green"
+    },
+    {
+      "id": "w31",
+      "a": {
+        "board": "b1",
+        "hole": "j17"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "B-13"
+      },
+      "color": "black"
+    },
+    {
+      "id": "w32",
+      "a": {
+        "board": "b1",
+        "hole": "a17"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "T+13"
+      },
+      "color": "red"
+    },
+    {
+      "id": "w33",
+      "a": {
+        "board": "b1",
+        "hole": "c18"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "c19"
+      },
+      "color": "green"
+    },
+    {
+      "id": "w36",
+      "a": {
+        "board": "b1",
+        "hole": "j20"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "B+15"
+      },
+      "color": "green"
+    },
+    {
+      "id": "w42",
+      "a": {
+        "board": "b1",
+        "hole": "B-10"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "j13"
+      },
+      "color": "black"
+    },
+    {
+      "id": "w52",
+      "a": {
+        "board": "b1",
+        "hole": "h27"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "h30"
+      },
+      "color": "green"
+    },
+    {
+      "id": "w53",
+      "a": {
+        "board": "b1",
+        "hole": "g25"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "g32"
+      },
+      "color": "green"
+    },
+    {
+      "id": "w57",
+      "a": {
+        "board": "b1",
+        "hole": "j29"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "B-23"
+      },
+      "color": "black"
+    },
+    {
+      "id": "w58",
+      "a": {
+        "board": "b1",
+        "hole": "a29"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "T+23"
+      },
+      "color": "red"
+    },
+    {
+      "id": "w59",
+      "a": {
+        "board": "b1",
+        "hole": "a31"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "T-25"
+      },
+      "color": "black"
+    },
+    {
+      "id": "w63",
+      "a": {
+        "board": "b1",
+        "hole": "j26"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "B-20"
+      },
+      "color": "black"
+    },
+    {
+      "id": "w67",
+      "a": {
+        "board": "b1",
+        "hole": "a36"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "T+29"
+      },
+      "color": "red"
+    },
+    {
+      "id": "w68",
+      "a": {
+        "board": "b1",
+        "hole": "a45"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "T+36"
+      },
+      "color": "red"
+    },
+    {
+      "id": "w69",
+      "a": {
+        "board": "b1",
+        "hole": "a54"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "T+44"
+      },
+      "color": "red"
+    },
+    {
+      "id": "w70",
+      "a": {
+        "board": "b1",
+        "hole": "j42"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "B-34"
+      },
+      "color": "black"
+    },
+    {
+      "id": "w71",
+      "a": {
+        "board": "b1",
+        "hole": "j51"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "B-41"
+      },
+      "color": "black"
+    },
+    {
+      "id": "w72",
+      "a": {
+        "board": "b1",
+        "hole": "j60"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "B-49"
+      },
+      "color": "black"
+    },
+    {
+      "id": "w74",
+      "a": {
+        "board": "b1",
+        "hole": "g36"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "g45"
+      },
+      "color": "green"
+    },
+    {
+      "id": "w75",
+      "a": {
+        "board": "b1",
+        "hole": "h37"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "h48"
+      },
+      "color": "green"
+    },
+    {
+      "id": "w76",
+      "a": {
+        "board": "b1",
+        "hole": "d42"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "d49"
+      },
+      "color": "green"
+    },
+    {
+      "id": "w77",
+      "a": {
+        "board": "b1",
+        "hole": "d50"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "g56"
+      },
+      "color": "green",
+      "points": [
+        {
+          "x": 8.8,
+          "z": -88.2
+        },
+        {
+          "x": 8.8,
+          "z": -75.6
+        }
+      ]
+    },
+    {
+      "id": "w78",
+      "a": {
+        "board": "b1",
+        "hole": "h55"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "h50"
+      },
+      "color": "green"
+    },
+    {
+      "id": "w79",
+      "a": {
+        "board": "b1",
+        "hole": "i47"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "i54"
+      },
+      "color": "green"
+    },
+    {
+      "id": "w80",
+      "a": {
+        "board": "b1",
+        "hole": "j49"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "i19"
+      },
+      "color": "green"
+    },
+    {
+      "id": "w81",
+      "a": {
+        "board": "b1",
+        "hole": "i46"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "i7"
+      },
+      "color": "green",
+      "points": [
+        {
+          "x": -72,
+          "z": -69.4
+        }
+      ]
+    },
+    {
+      "id": "w82",
+      "a": {
+        "board": "b1",
+        "hole": "h36"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "j31"
+      },
+      "color": "green",
+      "points": [
+        {
+          "x": -33.7,
+          "z": -68.4
+        },
+        {
+          "x": -45.5,
+          "z": -67.9
+        }
+      ]
+    },
+    {
+      "id": "w83",
+      "a": {
+        "board": "b1",
+        "hole": "d41"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "T-31"
+      },
+      "color": "yellow",
+      "points": [
+        {
+          "x": -20.4,
+          "z": -97.6
+        }
+      ]
+    }
+  ],
+  "parts": [
+    {
+      "id": "p3",
+      "def": "NE555",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "f5"
+        },
+        {
+          "board": "b1",
+          "hole": "f6"
+        },
+        {
+          "board": "b1",
+          "hole": "f7"
+        },
+        {
+          "board": "b1",
+          "hole": "f8"
+        },
+        {
+          "board": "b1",
+          "hole": "e8"
+        },
+        {
+          "board": "b1",
+          "hole": "e7"
+        },
+        {
+          "board": "b1",
+          "hole": "e6"
+        },
+        {
+          "board": "b1",
+          "hole": "e5"
+        }
+      ]
+    },
+    {
+      "id": "p12",
+      "def": "cap-electrolytic",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "j6"
+        },
+        {
+          "board": "b1",
+          "hole": "B-4"
+        }
+      ],
+      "value": 0.0000022
+    },
+    {
+      "id": "p13",
+      "def": "resistor",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "T+4"
+        },
+        {
+          "board": "b1",
+          "hole": "a6"
+        }
+      ],
+      "value": 1000
+    },
+    {
+      "id": "p15",
+      "def": "led-yellow",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "h7"
+        },
+        {
+          "board": "b1",
+          "hole": "h9"
+        }
+      ],
+      "value": 5
+    },
+    {
+      "id": "p16",
+      "def": "resistor",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "j9"
+        },
+        {
+          "board": "b1",
+          "hole": "B-6"
+        }
+      ],
+      "value": 220
+    },
+    {
+      "id": "p17",
+      "def": "pot",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "a1"
+        },
+        {
+          "board": "b1",
+          "hole": "a2"
+        },
+        {
+          "board": "b1",
+          "hole": "a3"
+        }
+      ],
+      "value": 1000000,
+      "state": 331
+    },
+    {
+      "id": "p22",
+      "def": "cap-ceramic",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "B+2"
+        },
+        {
+          "board": "b1",
+          "hole": "B-2"
+        }
+      ],
+      "value": 1e-7
+    },
+    {
+      "id": "p23",
+      "def": "cap-ceramic",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "T-6"
+        },
+        {
+          "board": "b1",
+          "hole": "a8"
+        }
+      ],
+      "value": 1e-7
+    },
+    {
+      "id": "p25",
+      "def": "resistor",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "d1"
+        },
+        {
+          "board": "b1",
+          "hole": "d6"
+        }
+      ],
+      "value": 1000
+    },
+    {
+      "id": "p27",
+      "def": "button",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "e13"
+        },
+        {
+          "board": "b1",
+          "hole": "e15"
+        },
+        {
+          "board": "b1",
+          "hole": "f13"
+        },
+        {
+          "board": "b1",
+          "hole": "f15"
+        }
+      ]
+    },
+    {
+      "id": "p29",
+      "def": "NE555",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "f17"
+        },
+        {
+          "board": "b1",
+          "hole": "f18"
+        },
+        {
+          "board": "b1",
+          "hole": "f19"
+        },
+        {
+          "board": "b1",
+          "hole": "f20"
+        },
+        {
+          "board": "b1",
+          "hole": "e20"
+        },
+        {
+          "board": "b1",
+          "hole": "e19"
+        },
+        {
+          "board": "b1",
+          "hole": "e18"
+        },
+        {
+          "board": "b1",
+          "hole": "e17"
+        }
+      ]
+    },
+    {
+      "id": "p34",
+      "def": "resistor",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "T+14"
+        },
+        {
+          "board": "b1",
+          "hole": "a18"
+        }
+      ],
+      "value": 1000000
+    },
+    {
+      "id": "p35",
+      "def": "cap-ceramic",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "T-15"
+        },
+        {
+          "board": "b1",
+          "hole": "a19"
+        }
+      ],
+      "value": 1e-7
+    },
+    {
+      "id": "p37",
+      "def": "cap-ceramic",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "a20"
+        },
+        {
+          "board": "b1",
+          "hole": "T-16"
+        }
+      ],
+      "value": 1e-7
+    },
+    {
+      "id": "p38",
+      "def": "resistor",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "i22"
+        },
+        {
+          "board": "b1",
+          "hole": "B-17"
+        }
+      ],
+      "value": 220
+    },
+    {
+      "id": "p39",
+      "def": "led-yellow",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "h19"
+        },
+        {
+          "board": "b1",
+          "hole": "h22"
+        }
+      ],
+      "value": 5
+    },
+    {
+      "id": "p40",
+      "def": "resistor",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "j15"
+        },
+        {
+          "board": "b1",
+          "hole": "B+11"
+        }
+      ],
+      "value": 1000
+    },
+    {
+      "id": "p51",
+      "def": "NE555",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "f29"
+        },
+        {
+          "board": "b1",
+          "hole": "f30"
+        },
+        {
+          "board": "b1",
+          "hole": "f31"
+        },
+        {
+          "board": "b1",
+          "hole": "f32"
+        },
+        {
+          "board": "b1",
+          "hole": "e32"
+        },
+        {
+          "board": "b1",
+          "hole": "e31"
+        },
+        {
+          "board": "b1",
+          "hole": "e30"
+        },
+        {
+          "board": "b1",
+          "hole": "e29"
+        }
+      ]
+    },
+    {
+      "id": "p54",
+      "def": "led-yellow",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "h31"
+        },
+        {
+          "board": "b1",
+          "hole": "h34"
+        }
+      ],
+      "value": 5
+    },
+    {
+      "id": "p55",
+      "def": "resistor",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "j34"
+        },
+        {
+          "board": "b1",
+          "hole": "B-27"
+        }
+      ],
+      "value": 220
+    },
+    {
+      "id": "p56",
+      "def": "resistor",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "j30"
+        },
+        {
+          "board": "b1",
+          "hole": "B+24"
+        }
+      ],
+      "value": 1000
+    },
+    {
+      "id": "p60",
+      "def": "cap-ceramic",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "a32"
+        },
+        {
+          "board": "b1",
+          "hole": "T-26"
+        }
+      ],
+      "value": 1e-7
+    },
+    {
+      "id": "p61",
+      "def": "resistor",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "j32"
+        },
+        {
+          "board": "b1",
+          "hole": "B+25"
+        }
+      ],
+      "value": 1000
+    },
+    {
+      "id": "p62",
+      "def": "push-switch",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "f25"
+        },
+        {
+          "board": "b1",
+          "hole": "f26"
+        },
+        {
+          "board": "b1",
+          "hole": "f27"
+        },
+        {
+          "board": "b1",
+          "hole": "e27"
+        },
+        {
+          "board": "b1",
+          "hole": "e26"
+        },
+        {
+          "board": "b1",
+          "hole": "e25"
+        }
+      ],
+      "state": 1
+    },
+    {
+      "id": "p64",
+      "def": "74LS04",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "f36"
+        },
+        {
+          "board": "b1",
+          "hole": "f37"
+        },
+        {
+          "board": "b1",
+          "hole": "f38"
+        },
+        {
+          "board": "b1",
+          "hole": "f39"
+        },
+        {
+          "board": "b1",
+          "hole": "f40"
+        },
+        {
+          "board": "b1",
+          "hole": "f41"
+        },
+        {
+          "board": "b1",
+          "hole": "f42"
+        },
+        {
+          "board": "b1",
+          "hole": "e42"
+        },
+        {
+          "board": "b1",
+          "hole": "e41"
+        },
+        {
+          "board": "b1",
+          "hole": "e40"
+        },
+        {
+          "board": "b1",
+          "hole": "e39"
+        },
+        {
+          "board": "b1",
+          "hole": "e38"
+        },
+        {
+          "board": "b1",
+          "hole": "e37"
+        },
+        {
+          "board": "b1",
+          "hole": "e36"
+        }
+      ]
+    },
+    {
+      "id": "p65",
+      "def": "74LS08",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "f45"
+        },
+        {
+          "board": "b1",
+          "hole": "f46"
+        },
+        {
+          "board": "b1",
+          "hole": "f47"
+        },
+        {
+          "board": "b1",
+          "hole": "f48"
+        },
+        {
+          "board": "b1",
+          "hole": "f49"
+        },
+        {
+          "board": "b1",
+          "hole": "f50"
+        },
+        {
+          "board": "b1",
+          "hole": "f51"
+        },
+        {
+          "board": "b1",
+          "hole": "e51"
+        },
+        {
+          "board": "b1",
+          "hole": "e50"
+        },
+        {
+          "board": "b1",
+          "hole": "e49"
+        },
+        {
+          "board": "b1",
+          "hole": "e48"
+        },
+        {
+          "board": "b1",
+          "hole": "e47"
+        },
+        {
+          "board": "b1",
+          "hole": "e46"
+        },
+        {
+          "board": "b1",
+          "hole": "e45"
+        }
+      ]
+    },
+    {
+      "id": "p66",
+      "def": "74LS32",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "f54"
+        },
+        {
+          "board": "b1",
+          "hole": "f55"
+        },
+        {
+          "board": "b1",
+          "hole": "f56"
+        },
+        {
+          "board": "b1",
+          "hole": "f57"
+        },
+        {
+          "board": "b1",
+          "hole": "f58"
+        },
+        {
+          "board": "b1",
+          "hole": "f59"
+        },
+        {
+          "board": "b1",
+          "hole": "f60"
+        },
+        {
+          "board": "b1",
+          "hole": "e60"
+        },
+        {
+          "board": "b1",
+          "hole": "e59"
+        },
+        {
+          "board": "b1",
+          "hole": "e58"
+        },
+        {
+          "board": "b1",
+          "hole": "e57"
+        },
+        {
+          "board": "b1",
+          "hole": "e56"
+        },
+        {
+          "board": "b1",
+          "hole": "e55"
+        },
+        {
+          "board": "b1",
+          "hole": "e54"
+        }
+      ]
+    },
+    {
+      "id": "p73",
+      "def": "led-blue",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "a51"
+        },
+        {
+          "board": "b1",
+          "hole": "T-41"
+        }
+      ],
+      "value": 5
+    },
+    {
+      "id": "p84",
+      "def": "power",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "T+50"
+        },
+        {
+          "board": "b1",
+          "hole": "T-50"
+        },
+        {
+          "board": "b1",
+          "hole": "B+50"
+        },
+        {
+          "board": "b1",
+          "hole": "B-50"
+        }
+      ]
+    }
+  ],
+  "nextId": 85,
+  "name": "8-bit computer clock"
+}

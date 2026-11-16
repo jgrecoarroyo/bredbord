@@ -1,0 +1,271 @@
+{
+  "version": 1,
+  "name": "Example: NAND gate",
+  "boards": [
+    {
+      "id": "b1",
+      "type": "bb830",
+      "x": 0,
+      "z": 0
+    }
+  ],
+  "wires": [
+    {
+      "id": "w4",
+      "a": {
+        "board": "b1",
+        "hole": "a24"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "T+19"
+      },
+      "color": "red"
+    },
+    {
+      "id": "w5",
+      "a": {
+        "board": "b1",
+        "hole": "j30"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "B-24"
+      },
+      "color": "black"
+    },
+    {
+      "id": "w7",
+      "a": {
+        "board": "b1",
+        "hole": "a15"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "T-11"
+      },
+      "color": "black"
+    },
+    {
+      "id": "w8",
+      "a": {
+        "board": "b1",
+        "hole": "h17"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "h24"
+      },
+      "color": "yellow"
+    },
+    {
+      "id": "w10",
+      "a": {
+        "board": "b1",
+        "hole": "a19"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "T-15"
+      },
+      "color": "black"
+    },
+    {
+      "id": "w11",
+      "a": {
+        "board": "b1",
+        "hole": "i21"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "i25"
+      },
+      "color": "green"
+    },
+    {
+      "id": "w12",
+      "a": {
+        "board": "b1",
+        "hole": "h26"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "h40"
+      },
+      "color": "blue"
+    },
+    {
+      "id": "w15",
+      "a": {
+        "board": "b1",
+        "hole": "j45"
+      },
+      "b": {
+        "board": "b1",
+        "hole": "B-36"
+      },
+      "color": "black"
+    }
+  ],
+  "parts": [
+    {
+      "id": "p2",
+      "def": "power",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "T+1"
+        },
+        {
+          "board": "b1",
+          "hole": "T-1"
+        },
+        {
+          "board": "b1",
+          "hole": "B+1"
+        },
+        {
+          "board": "b1",
+          "hole": "B-1"
+        }
+      ],
+      "state": 0
+    },
+    {
+      "id": "p3",
+      "def": "74LS00",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "f24"
+        },
+        {
+          "board": "b1",
+          "hole": "f25"
+        },
+        {
+          "board": "b1",
+          "hole": "f26"
+        },
+        {
+          "board": "b1",
+          "hole": "f27"
+        },
+        {
+          "board": "b1",
+          "hole": "f28"
+        },
+        {
+          "board": "b1",
+          "hole": "f29"
+        },
+        {
+          "board": "b1",
+          "hole": "f30"
+        },
+        {
+          "board": "b1",
+          "hole": "e30"
+        },
+        {
+          "board": "b1",
+          "hole": "e29"
+        },
+        {
+          "board": "b1",
+          "hole": "e28"
+        },
+        {
+          "board": "b1",
+          "hole": "e27"
+        },
+        {
+          "board": "b1",
+          "hole": "e26"
+        },
+        {
+          "board": "b1",
+          "hole": "e25"
+        },
+        {
+          "board": "b1",
+          "hole": "e24"
+        }
+      ]
+    },
+    {
+      "id": "p6",
+      "def": "button",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "e15"
+        },
+        {
+          "board": "b1",
+          "hole": "e17"
+        },
+        {
+          "board": "b1",
+          "hole": "f15"
+        },
+        {
+          "board": "b1",
+          "hole": "f17"
+        }
+      ]
+    },
+    {
+      "id": "p9",
+      "def": "button",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "e19"
+        },
+        {
+          "board": "b1",
+          "hole": "e21"
+        },
+        {
+          "board": "b1",
+          "hole": "f19"
+        },
+        {
+          "board": "b1",
+          "hole": "f21"
+        }
+      ]
+    },
+    {
+      "id": "p13",
+      "def": "led-red",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "j40"
+        },
+        {
+          "board": "b1",
+          "hole": "j41"
+        }
+      ]
+    },
+    {
+      "id": "p14",
+      "def": "resistor",
+      "pins": [
+        {
+          "board": "b1",
+          "hole": "i41"
+        },
+        {
+          "board": "b1",
+          "hole": "i45"
+        }
+      ],
+      "value": 220
+    }
+  ],
+  "nextId": 16
+}

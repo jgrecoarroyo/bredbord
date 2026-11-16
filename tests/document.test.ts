@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { benchDoc } from '../src/app/bench';
-import { blinkerDoc, counterDoc, exampleDoc, registerDoc } from '../src/app/example';
+import { EXAMPLES } from '../src/app/example';
 import { createDoc, type CircuitDoc } from '../src/engine/circuit';
 import { DOC_VERSION, readDoc } from '../src/engine/document';
 
@@ -12,7 +12,7 @@ const read = (raw: unknown): { doc: CircuitDoc; notes: string[] } => {
 
 describe('reading saved circuits', () => {
   it('reads back every example and the benchmark exactly as saved', () => {
-    for (const doc of [exampleDoc(), blinkerDoc(), counterDoc(), registerDoc(), benchDoc()]) {
+    for (const doc of [...EXAMPLES.map((e) => e.make() as CircuitDoc), benchDoc()]) {
       const saved = JSON.parse(JSON.stringify(doc));
       const { doc: back, notes } = read(saved);
       expect(notes).toEqual([]);

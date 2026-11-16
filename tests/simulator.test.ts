@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { blinkerDoc, counterDoc, exampleDoc, registerDoc } from '../src/app/example';
-import { createDoc } from '../src/engine/circuit';
+import { EXAMPLES } from '../src/app/example';
+import { createDoc, type CircuitDoc } from '../src/engine/circuit';
 import type { RailName } from '../src/engine/breadboard';
 import { Connectivity } from '../src/engine/netlist';
 import {
@@ -24,6 +24,12 @@ import {
   type Samples,
 } from '../src/engine/scope';
 import { h, rail, pinHole, sameStrip, railNear, Bench } from './helpers/bench';
+
+const example = (title: string): CircuitDoc => EXAMPLES.find((e) => e.title === title)!.make() as CircuitDoc;
+const exampleDoc = () => example('NAND gate');
+const blinkerDoc = () => example('555 clock');
+const counterDoc = () => example('4-bit counter');
+const registerDoc = () => example('4-bit register');
 
 describe('Simulator', () => {
   /** LED from + through a 470 Ω resistor to −, built the way you would on a board. */
