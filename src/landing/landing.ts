@@ -459,6 +459,12 @@ function buildBoard(maxAniso: number): THREE.Group {
  */
 const MAX_DPR = matchMedia('(pointer: coarse)').matches ? 3 : 2;
 
+/**
+ * Lets the browser handle a click or a key between the long steps of building the scene, so the links
+ * at the top work while the board is still loading.
+ */
+const breathe = (): Promise<void> => new Promise((done) => setTimeout(done, 0));
+
 async function main(): Promise<void> {
   await Promise.all([loadFonts(), document.fonts.load('500 30px "Atkinson Hyperlegible Next"')]);
   const canvas = document.querySelector<HTMLCanvasElement>('#board')!;
@@ -502,6 +508,7 @@ async function main(): Promise<void> {
   );
   floor.receiveShadow = true;
   scene.add(floor);
+  await breathe();
 
   // On a tall screen the whole board is turned a quarter round, its long side up and down; it still
   // turns over about its own length. The lights stay put, so they still come from the upper left.
@@ -577,6 +584,7 @@ async function main(): Promise<void> {
     dirty = true;
     moved ||= m;
   });
+  await breathe();
 
   let shadowAngle = NaN;
   const draw = (): void => {
@@ -621,9 +629,11 @@ async function main(): Promise<void> {
   };
   fit();
   holder.position.y = LIFT;
+  await breathe();
   // Compile every shader before the first frame, off the main thread where the browser can, so the
   // loader keeps running and the board doesn't stall on its first turn.
   await r.compileAsync(scene, cam);
+  await breathe();
   draw();
   await (window as { loader?: { finish(): Promise<void> } }).loader?.finish();
   document.body.classList.add('ready');
