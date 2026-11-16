@@ -293,7 +293,7 @@ function placingName(def: PartDef): string {
 
 export class Tools {
   mode: ToolMode = 'select';
-  /** Whether boards and instruments snap into line with what's near them as they're placed. */
+  /** Whether boards and instruments snap into line with what's near them, and wire bends onto holes. */
   snapping = true;
   /** The kind of board a Breadboard tile brings out. */
   boardType: BoardType = 'bb830';
@@ -985,6 +985,24 @@ export class Tools {
       this.placing = null;
     } else this.setGroup([]);
     this.refresh();
+  }
+
+  /**
+   * Undo. While a wire is being drawn it takes back that wire first, as in drawing programs: its
+   * last bend, or with no bends left, the wire itself (as Esc does). Then the last edit.
+   */
+  get canUndo(): boolean {
+    return !!this.pending || this.store.canUndo;
+  }
+
+  undo(): void {
+    if (this.pending) {
+      if (this.bends.length) this.bends.pop();
+      else this.pending = null;
+      this.refresh();
+      return;
+    }
+    this.store.undo();
   }
 
   /**
@@ -1853,9 +1871,13 @@ export class Tools {
     return floor ? floor.setY(H) : null;
   }
 
-  /** A bend goes exactly where the pointer is, unless that's on a hole: then it sits over the hole's middle. */
+  /**
+   * A bend goes exactly where the pointer is, unless that's on a hole: then it sits over the hole's
+   * middle. With Snap off it always goes exactly where the pointer is.
+   */
   private snapBend(point: THREE.Vector3 | null): THREE.Vector3 | null {
     if (!point) return null;
+    if (!this.snapping) return new THREE.Vector3(point.x, H, point.z);
     const near = this.sync.holeNear(point.x, point.z, HOLE_MAGNET);
     const hole = near && this.sync.holeWorld(near);
     return hole ?? new THREE.Vector3(point.x, H, point.z);
@@ -1967,7 +1989,7 @@ export class Tools {
     switch (key) {
       case 'z':
         if (shift) this.store.redo();
-        else this.store.undo();
+        else this.undo();
         return true;
       case 'y':
         this.store.redo();
@@ -2015,7 +2037,11 @@ export class Tools {
         return true;
       case 'g':
         this.snapping = !this.snapping;
-        this.toast(this.snapping ? 'Boards and instruments snap into line' : 'Boards and instruments move freely');
+        this.toast(
+          this.snapping
+            ? 'Boards, instruments and wire bends snap into place'
+            : 'Boards, instruments and wire bends move freely',
+        );
         this.refresh();
         return true;
       case 'w':
@@ -2150,7 +2176,7 @@ export class Tools {
     if (this.pending && (shift || !h)) {
       // Started, and clicked off the holes (or Shift-clicked, over one): the wire bends there and
       // carries on, as its ghost shows. Esc, a right-click or its first hole again drops it.
-      const point = h ? h.world : this.snapBend(this.deskPoint());
+      const point = h && this.snapping ? h.world : this.snapBend(this.deskPoint());
       if (point && !this.atLastPoint(point)) this.bends.push(new THREE.Vector3(point.x, H, point.z));
       this.refresh();
       return;
@@ -2169,8 +2195,9 @@ export class Tools {
       return;
     }
     if (!this.pending) {
-      // A new wire is under way: the wire picked before it isn't what the user is working on now.
-      if (this.selection?.kind === 'wire') this.selection = null;
+      // A new wire is under way: a wire or board picked before it isn't what the user is working on
+      // now. A part stays picked: its card lists the pins being wired to.
+      if (this.selection && this.selection.kind !== 'part') this.selection = null;
       this.pending = h;
       this.bends = [];
       this.refresh();
@@ -2243,7 +2270,9 @@ export class Tools {
       direction: this.ledDirection,
       spanFrom: span?.active ? span.from : null,
     };
-    return placementFor(this.fit, def, h, orientation, ignore);
+    // A part being moved keeps its own size; a new one gets the size picked for it (a 3 mm LED is slimmer).
+    const value = ignore ? this.fit.part(ignore)?.value : this.valueFor(def);
+    return placementFor(this.fit, def, h, orientation, ignore, value);
   }
 
   /** The power module jumper under the pointer, if that's what an item is. */
@@ -2902,7 +2931,7 @@ export class Tools {
     const h = this.hover;
     if (!start || (h && sameHole(h.ref, start.ref))) return null;
     if (!h || this.shiftHeld) {
-      const point = h ? h.world : this.snapBend(this.deskPoint());
+      const point = h && this.snapping ? h.world : this.snapBend(this.deskPoint());
       if (!point || this.atLastPoint(point)) return null;
       const color = this.leadColor(start.ref, start.ref) ?? this.wireColor;
       return { path: [start.world, ...this.bends, new THREE.Vector3(point.x, H, point.z)], color, open: true };

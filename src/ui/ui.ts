@@ -235,7 +235,7 @@ export class UI {
     $('[data-check="fade"]').addEventListener('click', () => this.setFaded(!this.faded));
     $('#t-rotate').addEventListener('click', () => this.tools.rotate());
     $('#t-delete').addEventListener('click', () => this.tools.deleteSelection());
-    $('#t-undo').addEventListener('click', () => this.store.undo());
+    $('#t-undo').addEventListener('click', () => this.tools.undo());
     $('#t-redo').addEventListener('click', () => this.store.redo());
     $('#t-wire').addEventListener('click', () => this.tools.toggleWireTool());
     $('#t-select').addEventListener('click', () => (this.tools.selecting = !this.tools.selecting));
@@ -512,7 +512,7 @@ export class UI {
     this.tools.powerOff();
     this.tools.dropUnfinished();
     this.store.replace(emptyDoc());
-    this.view.fit(this.sync.boardsBox());
+    this.view.fit(this.sync.boardsBox(), false);
     this.toast('New circuit');
   }
 
@@ -522,7 +522,7 @@ export class UI {
     this.tools.dropUnfinished();
     return whileBusy($('#desk'), 'Opening the circuit', () => {
       this.store.replace(doc);
-      this.view.fit(this.sync.boardsBox());
+      this.view.fit(this.sync.boardsBox(), false);
     });
   }
 
@@ -586,7 +586,7 @@ export class UI {
   private refreshTools(): void {
     const t = this.tools;
     const doc = this.store.doc;
-    $<HTMLButtonElement>('#t-undo').disabled = !this.store.canUndo;
+    $<HTMLButtonElement>('#t-undo').disabled = !t.canUndo;
     $<HTMLButtonElement>('#t-redo').disabled = !this.store.canRedo;
     $<HTMLButtonElement>('#t-delete').disabled = !t.selection && !t.group.length;
     const sel = t.selection;
