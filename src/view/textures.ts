@@ -80,7 +80,7 @@ export function boardTopTexture(spec: BoardSpec): THREE.CanvasTexture {
   const Z = (z: number): number => (z + W / 2) * PX;
   const mm = (v: number): number => v * PX;
 
-  g.fillStyle = '#efeee9';
+  g.fillStyle = '#e9e7e1';
   g.fillRect(0, 0, canvas.width, canvas.height);
   speckle(
     g,
@@ -195,9 +195,9 @@ export function boardTopTexture(spec: BoardSpec): THREE.CanvasTexture {
   const c1 = Z(gridZ(6.05));
   const groove = g.createLinearGradient(0, c0, 0, c1);
   groove.addColorStop(0, '#d2d0ca');
-  groove.addColorStop(0.22, '#e2e0db');
-  groove.addColorStop(0.8, '#eae9e4');
-  groove.addColorStop(1, '#f8f7f4');
+  groove.addColorStop(0.22, '#dcdad4');
+  groove.addColorStop(0.8, '#e4e2dc');
+  groove.addColorStop(1, '#f1efea');
   g.fillStyle = groove;
   g.fillRect(0, c0, canvas.width, c1 - c0);
 

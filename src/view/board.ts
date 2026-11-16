@@ -43,7 +43,7 @@ const TAB_EVERY = 41;
 
 const geometries = new Map<string, THREE.BufferGeometry>();
 const materials = new Map<string, THREE.Material[]>();
-const sideMaterial = new THREE.MeshStandardMaterial({ color: 0xe0dfda, roughness: 0.8 });
+const sideMaterial = new THREE.MeshStandardMaterial({ color: 0xdad8d2, roughness: 0.8 });
 /** The floor of the channel: in shadow on a real board, so a little darker. */
 const floorMaterial = new THREE.MeshStandardMaterial({ color: 0xbebcb5, roughness: 0.9 });
 
