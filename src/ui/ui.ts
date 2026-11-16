@@ -59,6 +59,8 @@ export class UI {
   private behind = false;
   /** What to do once the "save first?" popup is answered. */
   private asked: (() => void) | null = null;
+  /** The popup's main button saves first (`save`), or only goes ahead (`go`). */
+  private askKind: 'save' | 'go' = 'save';
 
   constructor(
     private readonly store: Store,
@@ -189,6 +191,7 @@ export class UI {
         const what = b.dataset.file;
         if (what === 'new') this.saveFirst('new', () => this.newCircuit());
         else if (what === 'open') this.saveFirst('open', () => $<HTMLInputElement>('#import-file').click());
+        else if (what === 'add') $<HTMLInputElement>('#add-file').click();
         else this.saveToFile();
       }),
     );
@@ -197,6 +200,12 @@ export class UI {
       const file = picker.files?.[0];
       picker.value = '';
       if (file) this.openFile(file);
+    });
+    const adder = $<HTMLInputElement>('#add-file');
+    adder.addEventListener('change', () => {
+      const file = adder.files?.[0];
+      adder.value = '';
+      if (file) this.openFile(file, true);
     });
     document
       .querySelectorAll<HTMLButtonElement>('[data-gfx]')
@@ -465,7 +474,27 @@ export class UI {
             ? 'The file you open takes the place of this circuit. Anything you haven’t saved to a file is lost.'
             : `The “${name}” example takes the place of this circuit. Anything you haven’t saved to a file is lost.`,
     );
+    this.openAsk('save', then);
+  }
+
+  /**
+   * A file with things in it Bredbord can't load: says what will be left out before opening it, so
+   * nobody saves over the original without noticing they're gone.
+   */
+  private confirmPartial(file: string, notes: readonly string[], then: () => void): void {
+    setText($('#ask-t'), `Some of “${file}” can’t be opened`);
+    setText(
+      $('#ask-p'),
+      `${notes.join('. ')}. Bredbord leaves those out. To keep the original file as it is, save under a new name afterwards.`,
+    );
+    this.openAsk('go', then);
+  }
+
+  private openAsk(kind: 'save' | 'go', then: () => void): void {
+    this.askKind = kind;
     this.asked = then;
+    $<HTMLButtonElement>('#ask [data-ask=drop]').hidden = kind === 'go';
+    setText($('#ask [data-ask=save]'), kind === 'go' ? 'Open without them' : 'Save to file');
     $('#ask').classList.add('open');
     $<HTMLButtonElement>('#ask [data-ask=save]').focus();
   }
@@ -485,7 +514,7 @@ export class UI {
       const then = this.asked;
       close();
       if (b.dataset.ask === 'save') {
-        this.saveToFile();
+        if (this.askKind === 'save') this.saveToFile();
         then?.();
       } else if (b.dataset.ask === 'drop') then?.();
     });
@@ -540,7 +569,8 @@ export class UI {
     this.store.markSaved();
   }
 
-  private openFile(file: File): void {
+  /** Opens a saved circuit in place of this one, or (`add`) puts it on the desk beside this one. */
+  private openFile(file: File, add = false): void {
     if (file.size > MAX_FILE_BYTES) {
       this.toast('That file is too big to be a breadboard circuit');
       return;
@@ -553,7 +583,14 @@ export class UI {
           this.toast(read.error);
           return;
         }
-        void this.swapIn(read.doc).then(() => this.toast([`Opened ${file.name}`, ...read.notes].join('. ')));
+        const go = (): void => {
+          if (add) {
+            this.tools.addCircuit(read.doc, 'right');
+            this.toast(`Added ${file.name} beside the circuit. Drag its boards where you want them`);
+          } else void this.swapIn(read.doc).then(() => this.toast(`Opened ${file.name}`));
+        };
+        if (read.notes.length) this.confirmPartial(file.name, read.notes, go);
+        else go();
       })
       .catch(() => this.toast('That file isn’t a breadboard circuit'));
   }

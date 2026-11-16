@@ -21,6 +21,7 @@ import {
   holeKey,
   sameHole,
   WIRE_COLORS,
+  type CircuitDoc,
   type DeskPoint,
   type HoleRef,
   type Id,
@@ -68,6 +69,8 @@ import { describeHoleHit, describeItem, pinTags, polarityTags, type Describing }
 import {
   boardSpot,
   clearDeskSpot,
+  DESK_GAP,
+  deskBounds,
   railSpan,
   supplySpotBeside,
   type DeskKind,
@@ -102,6 +105,7 @@ import {
   type PasteTarget,
 } from './group';
 import { Highlights } from './highlights';
+import { boardWithParts, mergeInto, type Merged } from '../../engine/merge';
 import { bendable, flips, placementFor, straddles, twoLegged, type Placement } from './placement';
 
 export type ToolMode = 'select' | 'wire' | 'probe' | 'place';
@@ -377,6 +381,8 @@ export class Tools {
   private readonly boxEl = document.createElement('div');
   private clip: Clip | null = null;
   private groupClip: GroupClip | null = null;
+  /** A board copied with everything on it (Ctrl+C with a board selected). */
+  private boardClip: CircuitDoc | null = null;
   /** A copied group following the pointer until a click puts it down. */
   private pasting: GroupClip | null = null;
   /** An Alt-drag is carrying a copy (in `pasting`), to be put down where the button comes up. */
@@ -1036,16 +1042,35 @@ export class Tools {
 
   /** Remembers the selected part, value and all, or the selected group (Ctrl+C, which then pastes it). */
   copy(): boolean {
+    if (!this.group.length && this.selection?.kind === 'board') {
+      const clip = boardWithParts(this.store.doc, this.selection.id);
+      if (!clip) return false;
+      this.boardClip = clip;
+      this.groupClip = null;
+      this.clip = null;
+      return true;
+    }
     if (this.group.length) {
       const clip = clipGroup(this.fit, new Set(this.group.map((g) => g.id)));
       if (!clip) return false;
       this.groupClip = clip;
       this.clip = null;
+      this.boardClip = null;
       return true;
     }
     const part = this.selectedPart();
     const def = part && PARTS[part.def];
     if (!part || !def || def.kind === 'power') return false;
+    // A part on two legs can be turned any way and have its legs bent or stretched: it's copied
+    // exactly as it is, as a group of one, rather than as a fresh part to place.
+    if (twoLegged(def) || bendable(def)) {
+      const clip = clipGroup(this.fit, new Set([part.id]));
+      if (!clip) return false;
+      this.groupClip = clip;
+      this.clip = null;
+      this.boardClip = null;
+      return true;
+    }
     // Whether it sits flipped: DIPs by where pin 1 is, rows of legs by which way they run.
     const a = this.sync.holeWorld(part.pins[0]);
     const b = this.sync.holeWorld(part.pins[part.pins.length - 1]);
@@ -1057,12 +1082,17 @@ export class Tools {
       def.kind === 'dipswitch' ||
       def.kind === 'nano';
     this.groupClip = null;
+    this.boardClip = null;
     this.clip = { def, value: part.value, state: keepsState ? part.state : undefined, flipped };
     return true;
   }
 
   /** Ctrl+V: places copies of the copied part, or carries a copy of the copied group to put down. */
   paste(): void {
+    if (this.boardClip) {
+      this.addCircuit(this.boardClip, 'below');
+      return;
+    }
     if (this.groupClip) {
       this.setMode('select');
       this.setGroup([]);
@@ -1077,6 +1107,35 @@ export class Tools {
     }
     this.flipped = clip.flipped;
     this.startPlacing(clip.def, clip.value, clip.state);
+  }
+
+  /**
+   * Puts a copy of another circuit on the desk, clear of everything already there: to the right of
+   * it (a file added in), or below it (a copied board). Selects the first board it brought, to drag
+   * where it's wanted. One undo step.
+   */
+  addCircuit(from: CircuitDoc, where: 'right' | 'below'): void {
+    const here = deskBounds(this.store.doc);
+    const there = deskBounds(from);
+    if (!there) {
+      this.toast('There’s nothing on the desk in that file');
+      return;
+    }
+    let dx = 0;
+    let dz = 0;
+    if (here) {
+      dx = where === 'right' ? here.maxX + 3 * DESK_GAP - there.minX : 0;
+      dz = where === 'right' ? here.minZ - there.minZ : here.maxZ + 3 * DESK_GAP - there.minZ;
+    }
+    let merged: Merged | null = null;
+    this.store.update((doc) => {
+      merged = mergeInto(doc, from, dx, dz);
+    });
+    this.setMode('select');
+    const first = (merged as Merged | null)?.boards[0];
+    this.selection = first ? { kind: 'board', id: first } : null;
+    this.view.fit(this.sync.boardsBox());
+    this.refresh();
   }
 
   /**
@@ -1997,7 +2056,9 @@ export class Tools {
       case 'c':
         // Copied, it's straight away on the pointer to put down, so it's plain what was copied. Esc puts it away.
         if (!this.copy()) return false;
-        this.paste();
+        // A board isn't carried on the pointer: its copy waits for Ctrl+V.
+        if (this.boardClip) this.toast('Board copied, with everything on it. Ctrl+V puts the copy below');
+        else this.paste();
         return true;
       case 'v':
         this.paste();

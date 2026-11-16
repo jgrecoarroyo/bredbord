@@ -107,6 +107,9 @@
             <button class="mi" role="menuitem" data-file="open">
               <span class="ic sm" data-ic="open"></span>Open file<kbd>Ctrl O</kbd>
             </button>
+            <button class="mi" role="menuitem" data-file="add">
+              <span class="ic sm" data-ic="duplicate"></span>Add from file
+            </button>
             <button class="mi" role="menuitem" data-file="save">
               <span class="ic sm" data-ic="save"></span>Save to file<kbd>Ctrl S</kbd>
             </button>
@@ -429,6 +432,7 @@
     <div class="tip" id="tip"></div>
     <div class="ghost" id="ghost"></div>
     <input type="file" id="import-file" accept=".json,application/json" hidden />
+    <input type="file" id="add-file" accept=".json,application/json" hidden />
     <input type="file" id="rom-file" accept=".bin,.rom,.hex,application/octet-stream" hidden />
 
     <!-- Loading: moved over the desk at start (see loading.ts); nothing shows if the desk is ready within a

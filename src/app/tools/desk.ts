@@ -288,3 +288,20 @@ export function supplySpotBeside(
   }
   return clearDeskSpot(doc, 'supply', x, z, { snapping });
 }
+
+/** The outline of everything on the desk, mm, or null for an empty desk. */
+export function deskBounds(doc: CircuitDoc): { minX: number; maxX: number; minZ: number; maxZ: number } | null {
+  const things: { x: number; z: number; size: { x: number; z: number } }[] = [
+    ...doc.boards.map((b) => ({ x: b.x, z: b.z, size: footprint('board', b.type) })),
+    ...(doc.supplies ?? []).map((s) => ({ x: s.x, z: s.z, size: footprint('supply') })),
+    ...(doc.meters ?? []).map((m) => ({ x: m.x, z: m.z, size: footprint('meter') })),
+    ...(doc.scopes ?? []).map((s) => ({ x: s.x, z: s.z, size: footprint('scope') })),
+  ];
+  if (!things.length) return null;
+  return {
+    minX: Math.min(...things.map((t) => t.x - t.size.x / 2)),
+    maxX: Math.max(...things.map((t) => t.x + t.size.x / 2)),
+    minZ: Math.min(...things.map((t) => t.z - t.size.z / 2)),
+    maxZ: Math.max(...things.map((t) => t.z + t.size.z / 2)),
+  };
+}
