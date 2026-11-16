@@ -14,6 +14,10 @@ export const MISSES_BOARD = 'Part of it would miss the board there';
 /** Parts and wires to leave out of a check: one id, or several. */
 export type Ignore = Id | ReadonlySet<Id> | undefined;
 
+/** A part's name in a sentence: an LED's title is only its colour. */
+const nameOf = (def: PartDef | undefined): string | undefined =>
+  def && (def.kind === 'led' ? `${def.title.toLowerCase()} LED` : def.title);
+
 const skips = (ignore: Ignore, id: Id): boolean => (typeof ignore === 'string' ? id === ignore : !!ignore?.has(id));
 
 export class Fit {
@@ -41,7 +45,7 @@ export class Fit {
     for (const ref of refs) {
       const over = this.sync.covered.get(holeKey(ref));
       if (over && !skips(ignore, over))
-        return `That hole is under the ${this.partDef(over)?.title ?? 'part next to it'}`;
+        return `That hole is under the ${nameOf(this.partDef(over)) ?? 'part next to it'}`;
     }
     return undefined;
   }
@@ -57,7 +61,7 @@ export class Fit {
     const skip = typeof ignore === 'string' ? new Set([ignore]) : (ignore ?? new Set<Id>());
     const other = this.sync.bodyClash(def, world, { value, facing }, skip);
     if (!other) return undefined;
-    const title = this.partDef(other)?.title;
+    const title = nameOf(this.partDef(other));
     return title ? `It would sit inside the ${title}` : 'It would sit inside another part';
   }
 

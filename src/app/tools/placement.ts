@@ -1,7 +1,7 @@
 // Where a part's legs go when it's placed with the pointer over a hole, and whether it fits there.
 
 import * as THREE from 'three';
-import { BOARD_HEIGHT as H, boardSpec, PITCH, type Hole } from '../../engine/breadboard';
+import { BOARD_HEIGHT as H, boardSpec, PITCH, type BoardSpec, type Hole } from '../../engine/breadboard';
 import { sameHole, type HoleRef, type Id } from '../../engine/circuit';
 import { dipFootprint, dipPinHoles, type PartDef } from '../../engine/parts';
 import type { HoleHit } from '../scene-sync';
@@ -33,8 +33,12 @@ export const LEG_DIRECTIONS: readonly [number, number][] = [
 ];
 /** Holes from a resistor's or diode's first leg to its second when it's dropped in: four holes end to end. */
 const AXIAL_SPAN = 3;
-/** A power module's pins at either end of a BB830. */
-const POWER_PINS = { left: ['T+1', 'T-1', 'B+1', 'B-1'], right: ['T+50', 'T-50', 'B+50', 'B-50'] };
+/** A power module's pins in the end holes of the rails: hole 1 on the left, the last (50 on a BB830, 25 on a half board) on the right. */
+function powerPins(spec: BoardSpec, side: 'left' | 'right'): string[] {
+  const last = spec.holes.filter((x) => x.rail === 'T+').length;
+  const n = side === 'left' ? 1 : last;
+  return ['T+', 'T-', 'B+', 'B-'].map((rail) => `${rail}${n}`);
+}
 
 /** Parts with two legs on wire leads: dragging a leg stretches them. */
 export const twoLegged = (def: PartDef | null | undefined): boolean =>
@@ -68,8 +72,18 @@ function inLine(points: readonly (THREE.Vector3 | undefined)[], step: number): T
   return points.map((p, i) => p ?? points[i0]!.clone().addScaledVector(d, i - i0));
 }
 
-/** Where a part would go with the pointer over `hit`, and whether it fits. `ignore` is a part being moved. */
-export function placementFor(fit: Fit, def: PartDef, hit: HoleHit, o: Orientation, ignore?: Id): Placement | null {
+/**
+ * Where a part would go with the pointer over `hit`, and whether it fits. `ignore` is a part being
+ * moved; `value` its size or value, which sets how big its body is (an LED's 3 or 5 mm).
+ */
+export function placementFor(
+  fit: Fit,
+  def: PartDef,
+  hit: HoleHit,
+  o: Orientation,
+  ignore?: Id,
+  value?: number,
+): Placement | null {
   let h = hit;
   const spec = boardSpec(h.board.type);
   const at = (hole: Hole): THREE.Vector3 => new THREE.Vector3(h.board.x + hole.x, H, h.board.z + hole.z);
@@ -102,7 +116,7 @@ export function placementFor(fit: Fit, def: PartDef, hit: HoleHit, o: Orientatio
       }
       case 'power':
         facing = h.hole.x < 0 ? -1 : 1;
-        holes = POWER_PINS[facing < 0 ? 'left' : 'right'].map((n) => spec.hole(n));
+        holes = powerPins(spec, facing < 0 ? 'left' : 'right').map((n) => spec.hole(n));
         break;
       case 'pot':
       case 'slide':
@@ -134,7 +148,8 @@ export function placementFor(fit: Fit, def: PartDef, hit: HoleHit, o: Orientatio
         if (from) {
           // Dragged out: legs bent from the first hole to this one.
           if (sameHole(from.ref, h.ref)) return null;
-          reason = fit.holesReason([from.ref, h.ref], ignore) ?? fit.bodyReason(def, [from.world, h.world], ignore);
+          reason =
+            fit.holesReason([from.ref, h.ref], ignore) ?? fit.bodyReason(def, [from.world, h.world], ignore, value);
           return { pins: [from.ref, h.ref], world: [from.world, h.world], valid: !reason, reason };
         }
         const [dc, dr] = LEG_DIRECTIONS[o.direction];
@@ -176,6 +191,6 @@ export function placementFor(fit: Fit, def: PartDef, hit: HoleHit, o: Orientatio
   }
   const pins = found.map((hole) => ({ board: h.board.id, hole: hole.name }));
   reason ??= fit.holesReason(pins, ignore);
-  reason ??= fit.bodyReason(def, found.map(at), ignore, ignore ? fit.part(ignore)?.value : undefined, facing);
+  reason ??= fit.bodyReason(def, found.map(at), ignore, value, facing);
   return { pins, world: found.map(at), valid: !reason, reason, facing };
 }
