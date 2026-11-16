@@ -247,7 +247,7 @@ const ghostTin = new THREE.MeshStandardMaterial({
   depthWrite: false,
 });
 /** How far (mm) a selected wire's halo stands out from it. */
-const HALO = 0.3;
+const HALO = 0.16;
 
 // Where a click puts the next bend: a dot like the bend handles on a selected wire.
 const markGeometry = new THREE.SphereGeometry(0.95, 16, 10);
